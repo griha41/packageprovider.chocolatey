@@ -180,14 +180,14 @@ namespace OneGet.PackageProvider.Chocolatey {
     public delegate IEnumerable<string> GetConfiguration (string path);
 
     /// <summary>
-    ///     The plugin/provider can query to see if the operation has been cancelled.
+    ///     The provider can query to see if the operation has been cancelled.
     ///     This provides for a gentle way for the caller to notify the callee that
     ///     they don't want any more results.
     /// </summary>
     /// <returns>returns TRUE if the operation has been cancelled.</returns>
     public delegate bool IsCancelled ();
 
-    // Standard Callbacks that we'll both use internally and pass on down to plugins.
+    // Standard Callbacks that we'll both use internally and pass on down to providers.
     public delegate bool Warning (string messageCode, string message, IEnumerable<object> args = null);
 
     public delegate bool Message (string messageCode, string message, IEnumerable<object> args = null);
@@ -226,7 +226,7 @@ namespace OneGet.PackageProvider.Chocolatey {
     #endregion
 
     /// <summary>
-    ///     This generated class can be copied to any project that implements a OneGet plugin
+    ///     This generated class can be copied to any project that implements a OneGet provider
     ///     This gives type-safe access to the callbacks and APIs without having to take a direct
     ///     dependency on the OneGet core Assemblies.
     /// </summary>
