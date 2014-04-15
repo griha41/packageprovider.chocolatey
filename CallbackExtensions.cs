@@ -103,7 +103,7 @@ namespace OneGet.PackageProvider.Chocolatey {
 
     #region copy core-supplied-callbacks
     /// <summary>
-    ///     The plugin/provider can query to see if the operation has been cancelled.
+    ///     The provider can query to see if the operation has been cancelled.
     ///     This provides for a gentle way for the caller to notify the callee that
     ///     they don't want any more results. It's essentially just !IsCancelled()
     /// </summary>

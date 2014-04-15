@@ -24,7 +24,7 @@
     ModuleVersion = "1.0.0.0"
     PowerShellVersion = "2.0"
     ClrVersion = "4.0"
-    RootModule = "Microsoft.OneGet.Plugin.Chocolatey.dll"
+    RootModule = "OneGet.PackageProvider.Chocolatey.dll"
     # NestedModules = @('')
     # TypesToProcess = ""
     # FormatsToProcess = ""

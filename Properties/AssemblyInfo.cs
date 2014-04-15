@@ -20,8 +20,8 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly: AssemblyTitle("Microsoft.OneGet.Plugin.Chocolatey")]
-[assembly: AssemblyDescription("Chocolatey PowerShell Module and OneGet Plugin")]
+[assembly: AssemblyTitle("OneGet.PackageProvider.Chocolatey")]
+[assembly: AssemblyDescription("Chocolatey PowerShell Module/OneGet Provider")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Microsoft")]
 [assembly: AssemblyProduct("Chocolatey")]

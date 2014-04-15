@@ -47,7 +47,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChocolateyPackageProvider.cs" />
-    <Compile Include="ChocolateyPlugin.cs" />
     <Compile Include="ChocolateyScript.cs" />
     <Compile Include="ChocolateyState.cs" />
     <Compile Include="CmdLets\InvokeChocolateyScript.cs" />
