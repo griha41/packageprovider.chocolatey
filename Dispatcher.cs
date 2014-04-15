@@ -30,22 +30,6 @@ namespace OneGet.PackageProvider.Chocolatey {
             }
         }
 
-        #region generate-dispatcher collection-callbacks
-		private LookupString _LookupString;
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public string LookupString(string name ) {
-		    CheckDisposed();
-            return (_LookupString ?? (_LookupString = (_callback.Resolve<LookupString>() ?? (( pname)=> default(string) ) )))( name);
-        }
-
-		private LookupEnumerable _LookupEnumerable;
-		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public IEnumerable<string> LookupEnumerable(string name ) {
-		    CheckDisposed();
-            return (_LookupEnumerable ?? (_LookupEnumerable = (_callback.Resolve<LookupEnumerable>() ?? (( pname)=> default(IEnumerable<string>) ) )))( name);
-        }
-        #endregion
-
         #region generate-dispatcher service-api-callbacks
 		private GetNuGetExePath _GetNuGetExePath;
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
@@ -531,11 +515,6 @@ namespace OneGet.PackageProvider.Chocolatey {
 
         // ReSharper restore InconsistentNaming
         public void Dispose() {
-
-            #region dispose-dispatcher collection-callbacks
-		_LookupString = null;
-		_LookupEnumerable = null;
-            #endregion
 
             #region dispose-dispatcher service-api-callbacks
 		_GetNuGetExePath = null;

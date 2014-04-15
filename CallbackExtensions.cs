@@ -16,12 +16,6 @@ namespace OneGet.PackageProvider.Chocolatey {
     using System;
     using System.Collections.Generic;
     using Callback = System.Func<string, System.Collections.Generic.IEnumerable<object>, object>;
-    #region copy collection-callbacks
-    // standard callbacks for accessing collections
-    public delegate string LookupString (string name);
-
-    public delegate IEnumerable<string> LookupEnumerable (string name);
-    #endregion
 
     #region copy service-api-callbacks
     public delegate string GetNuGetExePath ();
@@ -261,19 +255,6 @@ namespace OneGet.PackageProvider.Chocolatey {
             var m = (Delegate)c(delegateType.Name, null);
             return m == null ? null : CastDelegate<TDelegate>(m);
         }
-
-
-        #region generate-resolved collection-callbacks
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static string LookupString(this Callback c , string name ) {
-            return (c.Resolve<LookupString>() ?? (( pname)=> default(string) ) )( name);
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static IEnumerable<string> LookupEnumerable(this Callback c , string name ) {
-            return (c.Resolve<LookupEnumerable>() ?? (( pname)=> default(IEnumerable<string>) ) )( name);
-        }
-        #endregion
 
         #region generate-resolved service-api-callbacks
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
@@ -620,22 +601,6 @@ namespace OneGet.PackageProvider.Chocolatey {
             return (c.Resolve<WhatIf>() ?? (()=> default(bool) ) )();
         }
         #endregion
-
-        #region generate-powershell collection-callbacks
-public static string PowerShellScriptcollection = @"
-		function fn-LookupString {
-			param(
-				[string] $p_name)
-			return $_callback.Invoke( ""LookupString"", @($p_name) )
-		}
-		function fn-LookupEnumerable {
-			param(
-				[string] $p_name)
-			return $_callback.Invoke( ""LookupEnumerable"", @($p_name) )
-		}
-";
-#endregion
-
 
         #region generate-powershell service-api-callbacks
 public static string PowerShellScriptserviceapi = @"
