@@ -12,9 +12,9 @@
 //  limitations under the License.
 //  
 
-namespace Microsoft.OneGet.Plugin.Chocolatey {
+namespace OneGet.PackageProvider.Chocolatey {
     using System;
-    using PowerShell.Core;
+    using Microsoft.OneGet.Core;
 
     public class ChocolateyScript {
         private readonly ChocolateyState _state;

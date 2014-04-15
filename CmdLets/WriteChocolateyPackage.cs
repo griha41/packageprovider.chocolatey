@@ -12,9 +12,9 @@
 //  limitations under the License.
 //  
 
-namespace Microsoft.OneGet.Plugin.Chocolatey.CmdLets {
+namespace OneGet.PackageProvider.Chocolatey.CmdLets {
     using System.Management.Automation;
-    using Microsoft.PowerShell.OneGet.Core;
+    using Microsoft.OneGet;
 
     [Cmdlet("Write", "ChocolateyPackage")]
     public class WriteChocolateyPackage : AsyncCmdlet {

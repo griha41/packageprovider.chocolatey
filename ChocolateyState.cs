@@ -12,7 +12,7 @@
 //  limitations under the License.
 //  
 
-namespace Microsoft.OneGet.Plugin.Chocolatey {
+namespace OneGet.PackageProvider.Chocolatey {
 #if STATIC_LINK
 using NuGet;
 using NuGet.Commands;
@@ -20,7 +20,6 @@ using NuGet.Commands;
 #endif
     using System;
     using System.Collections.Generic;
-    using System.Data.Common;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
@@ -30,10 +29,10 @@ using NuGet.Commands;
     using System.Text.RegularExpressions;
     using System.Xml.Linq;
     using System.Xml.XPath;
-    using Core.Extensions;
-    using Core.Platform;
-    using Core.Process;
-    using Win32;
+    using Microsoft.OneGet.Core.Extensions;
+    using Microsoft.OneGet.Core.Platform;
+    using Microsoft.OneGet.Core.Process;
+    using Microsoft.Win32;
 
     internal class ChocolateyState : Dispatcher, IDisposable {
         private static readonly Regex _rxPkgParse = new Regex(@"'(?<pkgId>\S*)\s(?<ver>.*?)'");

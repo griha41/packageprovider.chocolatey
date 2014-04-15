@@ -12,7 +12,7 @@
 //  limitations under the License.
 //  
 
-namespace Microsoft.OneGet.Plugin.Chocolatey {
+namespace OneGet.PackageProvider.Chocolatey {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;

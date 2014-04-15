@@ -12,7 +12,7 @@
 //  limitations under the License.
 //  
 
-namespace Microsoft.OneGet.Plugin.Chocolatey {
+namespace OneGet.PackageProvider.Chocolatey {
     internal class PackageSource {
         internal string Name {get; set;}
         internal string Location {get; set;}

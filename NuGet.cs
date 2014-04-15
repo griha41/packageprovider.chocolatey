@@ -15,16 +15,14 @@
 // ReSharper disable InconsistentNaming
 #if NOT_STATIC_LINK
 #else
-namespace Microsoft.OneGet.Plugin.Chocolatey {
+namespace OneGet.PackageProvider.Chocolatey {
     using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.Dynamic;
-    using System.IO;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
-    using System.Reflection.Emit;
 
     internal class DynamicType {
         protected internal readonly dynamic actual;
