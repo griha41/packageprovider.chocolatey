@@ -30,7 +30,7 @@ namespace OneGet.PackageProvider.Chocolatey {
             }
         }
 
-        #region generate-dispatcher service-api-callbacks
+        #region generate-dispatcher service-apis
 		private GetNuGetExePath _GetNuGetExePath;
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
 		public string GetNuGetExePath( ) {
@@ -297,9 +297,11 @@ namespace OneGet.PackageProvider.Chocolatey {
             return (_IsElevated ?? (_IsElevated = (_callback.Resolve<IsElevated>() ?? (()=> default(bool) ) )))();
         }
         #endregion
+        #region generate-dispatcher core-apis
+        #endregion
 
-        #region generate-dispatcher core-supplied-callbacks
-		private OkToContinue _OkToContinue;
+        #region generate-dispatcher request-apis
+        private OkToContinue _OkToContinue;
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
 		public bool OkToContinue( ) {
 		    CheckDisposed();
@@ -335,7 +337,7 @@ namespace OneGet.PackageProvider.Chocolatey {
         }
         #endregion
 
-        #region generate-dispatcher host-supplied-callbacks
+        #region generate-dispatcher host-apis
 		private GetMetadataKeys _GetMetadataKeys;
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
 		public IEnumerable<string> GetMetadataKeys( ) {
@@ -516,7 +518,7 @@ namespace OneGet.PackageProvider.Chocolatey {
         // ReSharper restore InconsistentNaming
         public void Dispose() {
 
-            #region dispose-dispatcher service-api-callbacks
+            #region dispose-dispatcher service-apis
 		_GetNuGetExePath = null;
 		_GetNuGetDllPath = null;
 		_DownloadFile = null;
@@ -557,15 +559,19 @@ namespace OneGet.PackageProvider.Chocolatey {
 		_IsElevated = null;
             #endregion
 
-            #region dispose-dispatcher core-supplied-callbacks
-		_OkToContinue = null;
+        #region dispose-dispatcher core-apis
+        #endregion
+
+
+        #region dispose-dispatcher request-apis
+        _OkToContinue = null;
 		_YieldPackage = null;
 		_YieldSource = null;
 		_YieldMetadataDefinition = null;
 		_YieldInstallationOptionsDefinition = null;
             #endregion
 
-            #region dispose-dispatcher host-supplied-callbacks
+            #region dispose-dispatcher host-apis
 		_GetMetadataKeys = null;
 		_GetMetadataValues = null;
 		_GetInstallationOptionKeys = null;

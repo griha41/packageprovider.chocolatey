@@ -17,7 +17,7 @@ namespace OneGet.PackageProvider.Chocolatey {
     using System.Collections.Generic;
     using Callback = System.Func<string, System.Collections.Generic.IEnumerable<object>, object>;
 
-    #region copy service-api-callbacks
+    #region copy service-apis
     public delegate string GetNuGetExePath ();
 
     public delegate string GetNuGetDllPath ();
@@ -95,7 +95,7 @@ namespace OneGet.PackageProvider.Chocolatey {
     public delegate bool IsElevated ();
     #endregion
 
-    #region copy core-supplied-callbacks
+    #region copy request-apis
     /// <summary>
     ///     The provider can query to see if the operation has been cancelled.
     ///     This provides for a gentle way for the caller to notify the callee that
@@ -148,7 +148,7 @@ namespace OneGet.PackageProvider.Chocolatey {
     public delegate bool YieldInstallationOptionsDefinition (string name, string expectedType, bool required, IEnumerable<string> permittedValues);
     #endregion
 
-    #region copy host-supplied-callbacks
+    #region copy host-apis
     /// <summary>
     /// Used by a provider to request what metadata keys were passed from the user
     /// </summary>
@@ -256,7 +256,7 @@ namespace OneGet.PackageProvider.Chocolatey {
             return m == null ? null : CastDelegate<TDelegate>(m);
         }
 
-        #region generate-resolved service-api-callbacks
+        #region generate-resolved service-apis
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
 		public static string GetNuGetExePath(this Callback c  ) {
             return (c.Resolve<GetNuGetExePath>() ?? (()=> default(string) ) )();
@@ -448,7 +448,10 @@ namespace OneGet.PackageProvider.Chocolatey {
         }
         #endregion
 
-        #region generate-resolved core-supplied-callbacks
+        #region generate-resolved core-apis
+        #endregion
+
+        #region generate-resolved request-apis
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
 		public static bool OkToContinue(this Callback c  ) {
             return (c.Resolve<OkToContinue>() ?? (()=> default(bool) ) )();
@@ -475,7 +478,7 @@ namespace OneGet.PackageProvider.Chocolatey {
         }
         #endregion
 
-        #region generate-resolved host-supplied-callbacks
+        #region generate-resolved host-apis
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
 		public static IEnumerable<string> GetMetadataKeys(this Callback c  ) {
             return (c.Resolve<GetMetadataKeys>() ?? (()=> default(IEnumerable<string>) ) )();
@@ -602,7 +605,7 @@ namespace OneGet.PackageProvider.Chocolatey {
         }
         #endregion
 
-        #region generate-powershell service-api-callbacks
+        #region generate-powershell service-apis
 public static string PowerShellScriptserviceapi = @"
 		function fn-GetNuGetExePath {
 			return $_callback.Invoke( ""GetNuGetExePath"",@() )
@@ -759,9 +762,10 @@ public static string PowerShellScriptserviceapi = @"
 		}
 ";
 #endregion
-
-        #region generate-powershell core-supplied-callbacks
-public static string PowerShellScriptcoresupplied = @"
+        #region generate-powershell core-apis
+        #endregion
+        #region generate-powershell request-apis
+        public static string PowerShellScriptcoresupplied = @"
 		function fn-OkToContinue {
 			return $_callback.Invoke( ""OkToContinue"",@() )
 		}
@@ -800,7 +804,7 @@ public static string PowerShellScriptcoresupplied = @"
 ";
 #endregion
 
-        #region generate-powershell host-supplied-callbacks
+        #region generate-powershell host-apis
 public static string PowerShellScripthostsupplied = @"
 		function fn-GetMetadataKeys {
 			return $_callback.Invoke( ""GetMetadataKeys"",@() )
