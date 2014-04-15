@@ -89,10 +89,6 @@
       <Project>{7044b856-6d51-498f-8192-01f219908192}</Project>
       <Name>OneGet.Utility</Name>
     </ProjectReference>
-    <ProjectReference Include="..\MetaProvider.Powershell\MetaProvider.Powershell.csproj">
-      <Project>{ebeb46b5-3683-4d9f-939b-b1b2bbeea369}</Project>
-      <Name>Plugin.Powershell</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
