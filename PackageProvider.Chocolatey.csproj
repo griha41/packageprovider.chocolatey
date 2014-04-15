@@ -7,8 +7,8 @@
     <ProjectGuid>{B66830D3-7575-4688-8A05-C897BBFD776D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.OneGet.Plugin.Chocolatey</RootNamespace>
-    <AssemblyName>Microsoft.OneGet.Plugin.Chocolatey</AssemblyName>
+    <RootNamespace>OneGet.PackageProvider.Chocolatey</RootNamespace>
+    <AssemblyName>OneGet.PackageProvider.Chocolatey</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <SolutionPath Condition="$(SolutionPath) == '' Or $(SolutionPath) == '*Undefined*'">$(SolutionDir)\OneGet.sln</SolutionPath>
