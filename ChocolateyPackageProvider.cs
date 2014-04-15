@@ -20,6 +20,7 @@ namespace OneGet.PackageProvider.Chocolatey {
     using System.IO;
     using System.Linq;
     using Microsoft.OneGet.Core.Extensions;
+    using Callback = System.Func<string, System.Collections.Generic.IEnumerable<object>, object>;
 
     public class ChocolateyPackageProvider {
         public ChocolateyPackageProvider() {
@@ -31,7 +32,7 @@ namespace OneGet.PackageProvider.Chocolatey {
             }
         }
 
-        public bool FindPackage(string name, string requiredVersion, string minimumVersion, string maximumVersion, Func<string, IEnumerable<object>, object> c) {
+        public bool FindPackage(string name, string requiredVersion, string minimumVersion, string maximumVersion, Callback c) {
             using (var state = new ChocolateyState(c)) {
                 var allowPrerelease = state.AllowPrereleaseVersions;
 
@@ -51,7 +52,7 @@ namespace OneGet.PackageProvider.Chocolatey {
             }
         }
 
-        public bool InstallPackageByFastpath(string fastPath, Func<string, IEnumerable<object>, object> c) {
+        public bool InstallPackageByFastpath(string fastPath, Callback c) {
             using (var state = new ChocolateyState(c)) {
                 var pkgRef = state.GetPackageByFastpath(fastPath);
 
@@ -90,7 +91,7 @@ namespace OneGet.PackageProvider.Chocolatey {
         }
 
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-        public bool GetInstalledPackages(string name, Func<string, IEnumerable<object>, object> c) {
+        public bool GetInstalledPackages(string name, Callback c) {
             if (c == null) {
                 throw new ArgumentNullException("c");
             }
@@ -126,7 +127,7 @@ namespace OneGet.PackageProvider.Chocolatey {
         }
 
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Called via remoting.")]
-        public bool UninstallPackage(string fastPath, Func<string, IEnumerable<object>, object> c) {
+        public bool UninstallPackage(string fastPath, Callback c) {
             if (c == null) {
                 throw new ArgumentNullException("c");
             }
@@ -136,7 +137,7 @@ namespace OneGet.PackageProvider.Chocolatey {
             }
         }
 
-        public bool InstallPackageByFile(string filePath, Func<string, IEnumerable<object>, object> c) {
+        public bool InstallPackageByFile(string filePath, Callback c) {
             using (var state = new ChocolateyState(c)) {
                 filePath = Path.GetFullPath(filePath);
                 if (FilesystemExtensions.FileExists(filePath)) {
@@ -147,7 +148,7 @@ namespace OneGet.PackageProvider.Chocolatey {
         }
 
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-        internal bool FindPackageByFile(string filePath, Func<string, IEnumerable<object>, object> c) {
+        internal bool FindPackageByFile(string filePath, Callback c) {
             using (var state = new ChocolateyState(c)) {
                 filePath = Path.GetFullPath(filePath);
                 if (FilesystemExtensions.FileExists(filePath)) {
@@ -164,7 +165,7 @@ namespace OneGet.PackageProvider.Chocolatey {
         // not supported in chocolatey
         // internal bool InstallPackageByUri(string uri, Callback c) {return false;}
 
-        public void GetMetadataDefinitions(Func<string, IEnumerable<object>, object> c) {
+        public void GetMetadataDefinitions(Callback c) {
             using (var state = new ChocolateyState(c)) {
                 if (!state.YieldMetadataDefinition("AllowPrereleaseVersions", "switch", null)) {
                     return;
@@ -184,7 +185,7 @@ namespace OneGet.PackageProvider.Chocolatey {
             }
         }
 
-        public void GetInstallationOptionDefinitions(Func<string, IEnumerable<object>, object> c) {
+        public void GetInstallationOptionDefinitions(Callback c) {
             using (var state = new ChocolateyState(c)) {
                 if (!state.YieldInstallationOptionsDefinition("InstallArguments", "string", false, null)) {
                     return;
@@ -204,7 +205,7 @@ namespace OneGet.PackageProvider.Chocolatey {
             }
         }
 
-        public void AddPackageSource(string name, string location, bool trusted, Func<string, IEnumerable<object>, object> c) {
+        public void AddPackageSource(string name, string location, bool trusted, Callback c) {
             using (var state = new ChocolateyState(c)) {
                 if (string.IsNullOrEmpty(name)) {
                     state.Error("Chocolatey Package Sources require parameter", "Name");
@@ -216,13 +217,13 @@ namespace OneGet.PackageProvider.Chocolatey {
             }
         }
 
-        public void RemovePackageSource(string name, Func<string, IEnumerable<object>, object> c) {
+        public void RemovePackageSource(string name, Callback c) {
             using (var state = new ChocolateyState(c)) {
                 state.RemovePackageSource(name);
             }
         }
 
-        public bool GetPackageSources(Func<string, IEnumerable<object>, object> c) {
+        public bool GetPackageSources(Callback c) {
             using (var state = new ChocolateyState(c)) {
                 var sources = state.AllPackageRepositories;
                 foreach (var k in sources.Keys) {
@@ -232,7 +233,7 @@ namespace OneGet.PackageProvider.Chocolatey {
             return true;
         }
 
-        public bool IsValidPackageSource(string packageSource, Func<string, IEnumerable<object>, object> c) {
+        public bool IsValidPackageSource(string packageSource, Callback c) {
             using (var state = new ChocolateyState(c)) {
                 if (Uri.IsWellFormedUriString(packageSource, UriKind.Absolute)) {
                     var uri = new Uri(packageSource, UriKind.Absolute);
@@ -253,7 +254,7 @@ namespace OneGet.PackageProvider.Chocolatey {
             }
         }
 
-        public bool IsTrustedPackageSource(string packageSource, Func<string, IEnumerable<object>, object> c) {
+        public bool IsTrustedPackageSource(string packageSource, Callback c) {
             using (var state = new ChocolateyState(c)) {
                 var apr = state.AllPackageRepositories;
                 if (apr.ContainsKey(packageSource)) {

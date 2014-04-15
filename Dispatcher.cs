@@ -15,11 +15,12 @@
 namespace OneGet.PackageProvider.Chocolatey {
     using System;
     using System.Collections.Generic;
+    using Callback = System.Func<string, System.Collections.Generic.IEnumerable<object>, object>;
 
     internal class Dispatcher : IDisposable {
-        private Func<string, IEnumerable<object>, object> _callback;
+        private Callback _callback;
 
-        internal Dispatcher(Func<string, IEnumerable<object>, object> c) {
+        internal Dispatcher(Callback c) {
             _callback = c;
         }
 
@@ -458,9 +459,9 @@ namespace OneGet.PackageProvider.Chocolatey {
 
 		private GetHostDelegate _GetHostDelegate;
 		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public Func<string, IEnumerable<object>, object> GetHostDelegate( ) {
+		public Callback GetHostDelegate( ) {
 		    CheckDisposed();
-            return (_GetHostDelegate ?? (_GetHostDelegate = (_callback.Resolve<GetHostDelegate>() ?? (()=> default(Func<string, IEnumerable<object>, object>) ) )))();
+            return (_GetHostDelegate ?? (_GetHostDelegate = (_callback.Resolve<GetHostDelegate>() ?? (()=> default(Callback) ) )))();
         }
 
 		private ShouldContinueWithUntrustedPackageSource _ShouldContinueWithUntrustedPackageSource;

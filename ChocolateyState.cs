@@ -33,6 +33,7 @@ using NuGet.Commands;
     using Microsoft.OneGet.Core.Platform;
     using Microsoft.OneGet.Core.Process;
     using Microsoft.Win32;
+    using Callback = System.Func<string, System.Collections.Generic.IEnumerable<object>, object>;
 
     internal class ChocolateyState : Dispatcher, IDisposable {
         private static readonly Regex _rxPkgParse = new Regex(@"'(?<pkgId>\S*)\s(?<ver>.*?)'");
@@ -41,7 +42,7 @@ using NuGet.Commands;
         protected Lazy<PackageRepositoryFactory> _packageRepositoryFactory = new Lazy<PackageRepositoryFactory>(() => new PackageRepositoryFactory());
         private List<IPackageRepository> _repositories;
 
-        internal ChocolateyState(Func<string, IEnumerable<object>, object> c) : base(c) {
+        internal ChocolateyState(Callback c) : base(c) {
             if (NuGet.NuGetCorePath == null) {
                 NuGet.NuGetCorePath = GetNuGetDllPath();
             }

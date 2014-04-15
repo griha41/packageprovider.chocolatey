@@ -15,7 +15,7 @@
 namespace OneGet.PackageProvider.Chocolatey {
     using System;
     using System.Collections.Generic;
-
+    using Callback = System.Func<string, System.Collections.Generic.IEnumerable<object>, object>;
     #region copy collection-callbacks
     // standard callbacks for accessing collections
     public delegate string LookupString (string name);
@@ -204,7 +204,7 @@ namespace OneGet.PackageProvider.Chocolatey {
 
     public delegate bool ProgressComplete (int activityId, string activity, string message, IEnumerable<object> args = null);
 
-    public delegate Func<string, IEnumerable<object>, object> GetHostDelegate ();
+    public delegate Callback GetHostDelegate ();
 
     public delegate bool ShouldContinueWithUntrustedPackageSource (string package, string packageSource);
 
@@ -250,7 +250,7 @@ namespace OneGet.PackageProvider.Chocolatey {
         /// <param name="c"></param>
         /// <param name="args"></param>
         /// <returns></returns>
-        public static TDelegate Resolve<TDelegate>(this Func<string, IEnumerable<object>, object> c, params object[] args) where TDelegate : class {
+        public static TDelegate Resolve<TDelegate>(this Callback c, params object[] args) where TDelegate : class {
             var delegateType = typeof (TDelegate);
             if (delegateType.BaseType != typeof (MulticastDelegate)) {
                 throw new Exception("Generic Type Incorrect");
@@ -265,358 +265,358 @@ namespace OneGet.PackageProvider.Chocolatey {
 
         #region generate-resolved collection-callbacks
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static string LookupString(this Func<string, IEnumerable<object>, object> c , string name ) {
+		public static string LookupString(this Callback c , string name ) {
             return (c.Resolve<LookupString>() ?? (( pname)=> default(string) ) )( name);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static IEnumerable<string> LookupEnumerable(this Func<string, IEnumerable<object>, object> c , string name ) {
+		public static IEnumerable<string> LookupEnumerable(this Callback c , string name ) {
             return (c.Resolve<LookupEnumerable>() ?? (( pname)=> default(IEnumerable<string>) ) )( name);
         }
         #endregion
 
         #region generate-resolved service-api-callbacks
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static string GetNuGetExePath(this Func<string, IEnumerable<object>, object> c  ) {
+		public static string GetNuGetExePath(this Callback c  ) {
             return (c.Resolve<GetNuGetExePath>() ?? (()=> default(string) ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static string GetNuGetDllPath(this Func<string, IEnumerable<object>, object> c  ) {
+		public static string GetNuGetDllPath(this Callback c  ) {
             return (c.Resolve<GetNuGetDllPath>() ?? (()=> default(string) ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static string DownloadFile(this Func<string, IEnumerable<object>, object> c , string remoteLocation, string localLocation ) {
+		public static string DownloadFile(this Callback c , string remoteLocation, string localLocation ) {
             return (c.Resolve<DownloadFile>() ?? (( premoteLocation, plocalLocation)=> default(string) ) )( remoteLocation, localLocation);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void AddPinnedItemToTaskbar(this Func<string, IEnumerable<object>, object> c , string item ) {
+		public static void AddPinnedItemToTaskbar(this Callback c , string item ) {
              (c.Resolve<AddPinnedItemToTaskbar>() ?? (( pitem)=> { } ) )( item);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void RemovePinnedItemFromTaskbar(this Func<string, IEnumerable<object>, object> c , string item ) {
+		public static void RemovePinnedItemFromTaskbar(this Callback c , string item ) {
              (c.Resolve<RemovePinnedItemFromTaskbar>() ?? (( pitem)=> { } ) )( item);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool CreateShortcutLink(this Func<string, IEnumerable<object>, object> c , string linkPath, string targetPath, string description, string workingDirectory, string arguments ) {
+		public static bool CreateShortcutLink(this Callback c , string linkPath, string targetPath, string description, string workingDirectory, string arguments ) {
             return (c.Resolve<CreateShortcutLink>() ?? (( plinkPath, ptargetPath, pdescription, pworkingDirectory, parguments)=> default(bool) ) )( linkPath, targetPath, description, workingDirectory, arguments);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static IEnumerable<string> UnzipFileIncremental(this Func<string, IEnumerable<object>, object> c , string zipFile, string folder ) {
+		public static IEnumerable<string> UnzipFileIncremental(this Callback c , string zipFile, string folder ) {
             return (c.Resolve<UnzipFileIncremental>() ?? (( pzipFile, pfolder)=> default(IEnumerable<string>) ) )( zipFile, folder);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static IEnumerable<string> UnzipFile(this Func<string, IEnumerable<object>, object> c , string zipFile, string folder ) {
+		public static IEnumerable<string> UnzipFile(this Callback c , string zipFile, string folder ) {
             return (c.Resolve<UnzipFile>() ?? (( pzipFile, pfolder)=> default(IEnumerable<string>) ) )( zipFile, folder);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void AddFileAssociation(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void AddFileAssociation(this Callback c  ) {
              (c.Resolve<AddFileAssociation>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void RemoveFileAssociation(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void RemoveFileAssociation(this Callback c  ) {
              (c.Resolve<RemoveFileAssociation>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void AddExplorerMenuItem(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void AddExplorerMenuItem(this Callback c  ) {
              (c.Resolve<AddExplorerMenuItem>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void RemoveExplorerMenuItem(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void RemoveExplorerMenuItem(this Callback c  ) {
              (c.Resolve<RemoveExplorerMenuItem>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool SetEnvironmentVariable(this Func<string, IEnumerable<object>, object> c , string variable, string value, string context ) {
+		public static bool SetEnvironmentVariable(this Callback c , string variable, string value, string context ) {
             return (c.Resolve<SetEnvironmentVariable>() ?? (( pvariable, pvalue, pcontext)=> default(bool) ) )( variable, value, context);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool RemoveEnvironmentVariable(this Func<string, IEnumerable<object>, object> c , string variable, string context ) {
+		public static bool RemoveEnvironmentVariable(this Callback c , string variable, string context ) {
             return (c.Resolve<RemoveEnvironmentVariable>() ?? (( pvariable, pcontext)=> default(bool) ) )( variable, context);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void AddFolderToPath(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void AddFolderToPath(this Callback c  ) {
              (c.Resolve<AddFolderToPath>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void RemoveFolderFromPath(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void RemoveFolderFromPath(this Callback c  ) {
              (c.Resolve<RemoveFolderFromPath>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void InstallMSI(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void InstallMSI(this Callback c  ) {
              (c.Resolve<InstallMSI>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void RemoveMSI(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void RemoveMSI(this Callback c  ) {
              (c.Resolve<RemoveMSI>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void StartProcess(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void StartProcess(this Callback c  ) {
              (c.Resolve<StartProcess>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void InstallVSIX(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void InstallVSIX(this Callback c  ) {
              (c.Resolve<InstallVSIX>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void UninstallVSIX(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void UninstallVSIX(this Callback c  ) {
              (c.Resolve<UninstallVSIX>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void InstallPowershellScript(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void InstallPowershellScript(this Callback c  ) {
              (c.Resolve<InstallPowershellScript>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void UninstallPowershellScript(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void UninstallPowershellScript(this Callback c  ) {
              (c.Resolve<UninstallPowershellScript>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void SearchForExecutable(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void SearchForExecutable(this Callback c  ) {
              (c.Resolve<SearchForExecutable>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void GetUserBinFolder(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void GetUserBinFolder(this Callback c  ) {
              (c.Resolve<GetUserBinFolder>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void GetSystemBinFolder(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void GetSystemBinFolder(this Callback c  ) {
              (c.Resolve<GetSystemBinFolder>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool CopyFile(this Func<string, IEnumerable<object>, object> c , string sourcePath, string destinationPath ) {
+		public static bool CopyFile(this Callback c , string sourcePath, string destinationPath ) {
             return (c.Resolve<CopyFile>() ?? (( psourcePath, pdestinationPath)=> default(bool) ) )( sourcePath, destinationPath);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void CopyFolder(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void CopyFolder(this Callback c  ) {
              (c.Resolve<CopyFolder>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void Delete(this Func<string, IEnumerable<object>, object> c , string path ) {
+		public static void Delete(this Callback c , string path ) {
              (c.Resolve<Delete>() ?? (( ppath)=> { } ) )( path);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void DeleteFolder(this Func<string, IEnumerable<object>, object> c , string folder ) {
+		public static void DeleteFolder(this Callback c , string folder ) {
              (c.Resolve<DeleteFolder>() ?? (( pfolder)=> { } ) )( folder);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void CreateFolder(this Func<string, IEnumerable<object>, object> c , string folder ) {
+		public static void CreateFolder(this Callback c , string folder ) {
              (c.Resolve<CreateFolder>() ?? (( pfolder)=> { } ) )( folder);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void DeleteFile(this Func<string, IEnumerable<object>, object> c , string filename ) {
+		public static void DeleteFile(this Callback c , string filename ) {
              (c.Resolve<DeleteFile>() ?? (( pfilename)=> { } ) )( filename);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void BeginTransaction(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void BeginTransaction(this Callback c  ) {
              (c.Resolve<BeginTransaction>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void AbortTransaction(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void AbortTransaction(this Callback c  ) {
              (c.Resolve<AbortTransaction>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void EndTransaction(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void EndTransaction(this Callback c  ) {
              (c.Resolve<EndTransaction>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static void GenerateUninstallScript(this Func<string, IEnumerable<object>, object> c  ) {
+		public static void GenerateUninstallScript(this Callback c  ) {
              (c.Resolve<GenerateUninstallScript>() ?? (()=> { } ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static string GetKnownFolder(this Func<string, IEnumerable<object>, object> c , string knownFolder ) {
+		public static string GetKnownFolder(this Callback c , string knownFolder ) {
             return (c.Resolve<GetKnownFolder>() ?? (( pknownFolder)=> default(string) ) )( knownFolder);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool IsElevated(this Func<string, IEnumerable<object>, object> c  ) {
+		public static bool IsElevated(this Callback c  ) {
             return (c.Resolve<IsElevated>() ?? (()=> default(bool) ) )();
         }
         #endregion
 
         #region generate-resolved core-supplied-callbacks
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool OkToContinue(this Func<string, IEnumerable<object>, object> c  ) {
+		public static bool OkToContinue(this Callback c  ) {
             return (c.Resolve<OkToContinue>() ?? (()=> default(bool) ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool YieldPackage(this Func<string, IEnumerable<object>, object> c , string fastPath, string name, string version, string versionScheme, string summary, string source ) {
+		public static bool YieldPackage(this Callback c , string fastPath, string name, string version, string versionScheme, string summary, string source ) {
             return (c.Resolve<YieldPackage>() ?? (( pfastPath, pname, pversion, pversionScheme, psummary, psource)=> default(bool) ) )( fastPath, name, version, versionScheme, summary, source);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool YieldSource(this Func<string, IEnumerable<object>, object> c , string name, string location, bool isTrusted ) {
+		public static bool YieldSource(this Callback c , string name, string location, bool isTrusted ) {
             return (c.Resolve<YieldSource>() ?? (( pname, plocation, pisTrusted)=> default(bool) ) )( name, location, isTrusted);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool YieldMetadataDefinition(this Func<string, IEnumerable<object>, object> c , string name, string expectedType, IEnumerable<string> permittedValues ) {
+		public static bool YieldMetadataDefinition(this Callback c , string name, string expectedType, IEnumerable<string> permittedValues ) {
             return (c.Resolve<YieldMetadataDefinition>() ?? (( pname, pexpectedType, ppermittedValues)=> default(bool) ) )( name, expectedType, permittedValues);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool YieldInstallationOptionsDefinition(this Func<string, IEnumerable<object>, object> c , string name, string expectedType, bool required, IEnumerable<string> permittedValues ) {
+		public static bool YieldInstallationOptionsDefinition(this Callback c , string name, string expectedType, bool required, IEnumerable<string> permittedValues ) {
             return (c.Resolve<YieldInstallationOptionsDefinition>() ?? (( pname, pexpectedType, prequired, ppermittedValues)=> default(bool) ) )( name, expectedType, required, permittedValues);
         }
         #endregion
 
         #region generate-resolved host-supplied-callbacks
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static IEnumerable<string> GetMetadataKeys(this Func<string, IEnumerable<object>, object> c  ) {
+		public static IEnumerable<string> GetMetadataKeys(this Callback c  ) {
             return (c.Resolve<GetMetadataKeys>() ?? (()=> default(IEnumerable<string>) ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static IEnumerable<string> GetMetadataValues(this Func<string, IEnumerable<object>, object> c , string key ) {
+		public static IEnumerable<string> GetMetadataValues(this Callback c , string key ) {
             return (c.Resolve<GetMetadataValues>() ?? (( pkey)=> default(IEnumerable<string>) ) )( key);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static IEnumerable<string> GetInstallationOptionKeys(this Func<string, IEnumerable<object>, object> c  ) {
+		public static IEnumerable<string> GetInstallationOptionKeys(this Callback c  ) {
             return (c.Resolve<GetInstallationOptionKeys>() ?? (()=> default(IEnumerable<string>) ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static IEnumerable<string> GetInstallationOptionValues(this Func<string, IEnumerable<object>, object> c , string key ) {
+		public static IEnumerable<string> GetInstallationOptionValues(this Callback c , string key ) {
             return (c.Resolve<GetInstallationOptionValues>() ?? (( pkey)=> default(IEnumerable<string>) ) )( key);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static IEnumerable<string> PackageSources(this Func<string, IEnumerable<object>, object> c  ) {
+		public static IEnumerable<string> PackageSources(this Callback c  ) {
             return (c.Resolve<PackageSources>() ?? (()=> default(IEnumerable<string>) ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static IEnumerable<string> GetConfiguration(this Func<string, IEnumerable<object>, object> c , string path ) {
+		public static IEnumerable<string> GetConfiguration(this Callback c , string path ) {
             return (c.Resolve<GetConfiguration>() ?? (( ppath)=> default(IEnumerable<string>) ) )( path);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool IsCancelled(this Func<string, IEnumerable<object>, object> c  ) {
+		public static bool IsCancelled(this Callback c  ) {
             return (c.Resolve<IsCancelled>() ?? (()=> default(bool) ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool Warning(this Func<string, IEnumerable<object>, object> c , string messageCode, string message, IEnumerable<object> args ) {
+		public static bool Warning(this Callback c , string messageCode, string message, IEnumerable<object> args ) {
             return (c.Resolve<Warning>() ?? (( pmessageCode, pmessage, pargs)=> default(bool) ) )( messageCode, message, args);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool Message(this Func<string, IEnumerable<object>, object> c , string messageCode, string message, IEnumerable<object> args ) {
+		public static bool Message(this Callback c , string messageCode, string message, IEnumerable<object> args ) {
             return (c.Resolve<Message>() ?? (( pmessageCode, pmessage, pargs)=> default(bool) ) )( messageCode, message, args);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool Error(this Func<string, IEnumerable<object>, object> c , string messageCode, string message, IEnumerable<object> args ) {
+		public static bool Error(this Callback c , string messageCode, string message, IEnumerable<object> args ) {
             return (c.Resolve<Error>() ?? (( pmessageCode, pmessage, pargs)=> default(bool) ) )( messageCode, message, args);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool Debug(this Func<string, IEnumerable<object>, object> c , string messageCode, string message, IEnumerable<object> args ) {
+		public static bool Debug(this Callback c , string messageCode, string message, IEnumerable<object> args ) {
             return (c.Resolve<Debug>() ?? (( pmessageCode, pmessage, pargs)=> default(bool) ) )( messageCode, message, args);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool Verbose(this Func<string, IEnumerable<object>, object> c , string messageCode, string message, IEnumerable<object> args ) {
+		public static bool Verbose(this Callback c , string messageCode, string message, IEnumerable<object> args ) {
             return (c.Resolve<Verbose>() ?? (( pmessageCode, pmessage, pargs)=> default(bool) ) )( messageCode, message, args);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool ExceptionThrown(this Func<string, IEnumerable<object>, object> c , string exceptionType, string message, string stacktrace ) {
+		public static bool ExceptionThrown(this Callback c , string exceptionType, string message, string stacktrace ) {
             return (c.Resolve<ExceptionThrown>() ?? (( pexceptionType, pmessage, pstacktrace)=> default(bool) ) )( exceptionType, message, stacktrace);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool Progress(this Func<string, IEnumerable<object>, object> c , int activityId, string activity, int progress, string message, IEnumerable<object> args ) {
+		public static bool Progress(this Callback c , int activityId, string activity, int progress, string message, IEnumerable<object> args ) {
             return (c.Resolve<Progress>() ?? (( pactivityId, pactivity, pprogress, pmessage, pargs)=> default(bool) ) )( activityId, activity, progress, message, args);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool ProgressComplete(this Func<string, IEnumerable<object>, object> c , int activityId, string activity, string message, IEnumerable<object> args ) {
+		public static bool ProgressComplete(this Callback c , int activityId, string activity, string message, IEnumerable<object> args ) {
             return (c.Resolve<ProgressComplete>() ?? (( pactivityId, pactivity, pmessage, pargs)=> default(bool) ) )( activityId, activity, message, args);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static Func<string, IEnumerable<object>, object> GetHostDelegate(this Func<string, IEnumerable<object>, object> c  ) {
-            return (c.Resolve<GetHostDelegate>() ?? (()=> default(Func<string, IEnumerable<object>, object>) ) )();
+		public static Callback GetHostDelegate(this Callback c  ) {
+            return (c.Resolve<GetHostDelegate>() ?? (()=> default(Callback) ) )();
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool ShouldContinueWithUntrustedPackageSource(this Func<string, IEnumerable<object>, object> c , string package, string packageSource ) {
+		public static bool ShouldContinueWithUntrustedPackageSource(this Callback c , string package, string packageSource ) {
             return (c.Resolve<ShouldContinueWithUntrustedPackageSource>() ?? (( ppackage, ppackageSource)=> default(bool) ) )( package, packageSource);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool ShouldProcessPackageInstall(this Func<string, IEnumerable<object>, object> c , string packageName, string version, string source ) {
+		public static bool ShouldProcessPackageInstall(this Callback c , string packageName, string version, string source ) {
             return (c.Resolve<ShouldProcessPackageInstall>() ?? (( ppackageName, pversion, psource)=> default(bool) ) )( packageName, version, source);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool ShouldProcessPackageUninstall(this Func<string, IEnumerable<object>, object> c , string packageName, string version ) {
+		public static bool ShouldProcessPackageUninstall(this Callback c , string packageName, string version ) {
             return (c.Resolve<ShouldProcessPackageUninstall>() ?? (( ppackageName, pversion)=> default(bool) ) )( packageName, version);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool ShouldContinueAfterPackageInstallFailure(this Func<string, IEnumerable<object>, object> c , string packageName, string version, string source ) {
+		public static bool ShouldContinueAfterPackageInstallFailure(this Callback c , string packageName, string version, string source ) {
             return (c.Resolve<ShouldContinueAfterPackageInstallFailure>() ?? (( ppackageName, pversion, psource)=> default(bool) ) )( packageName, version, source);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool ShouldContinueAfterPackageUninstallFailure(this Func<string, IEnumerable<object>, object> c , string packageName, string version, string source ) {
+		public static bool ShouldContinueAfterPackageUninstallFailure(this Callback c , string packageName, string version, string source ) {
             return (c.Resolve<ShouldContinueAfterPackageUninstallFailure>() ?? (( ppackageName, pversion, psource)=> default(bool) ) )( packageName, version, source);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool ShouldContinueRunningInstallScript(this Func<string, IEnumerable<object>, object> c , string packageName, string version, string source, string scriptLocation ) {
+		public static bool ShouldContinueRunningInstallScript(this Callback c , string packageName, string version, string source, string scriptLocation ) {
             return (c.Resolve<ShouldContinueRunningInstallScript>() ?? (( ppackageName, pversion, psource, pscriptLocation)=> default(bool) ) )( packageName, version, source, scriptLocation);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool ShouldContinueRunningUninstallScript(this Func<string, IEnumerable<object>, object> c , string packageName, string version, string source, string scriptLocation ) {
+		public static bool ShouldContinueRunningUninstallScript(this Callback c , string packageName, string version, string source, string scriptLocation ) {
             return (c.Resolve<ShouldContinueRunningUninstallScript>() ?? (( ppackageName, pversion, psource, pscriptLocation)=> default(bool) ) )( packageName, version, source, scriptLocation);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool AskPermission(this Func<string, IEnumerable<object>, object> c , string permission ) {
+		public static bool AskPermission(this Callback c , string permission ) {
             return (c.Resolve<AskPermission>() ?? (( ppermission)=> default(bool) ) )( permission);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-		public static bool WhatIf(this Func<string, IEnumerable<object>, object> c  ) {
+		public static bool WhatIf(this Callback c  ) {
             return (c.Resolve<WhatIf>() ?? (()=> default(bool) ) )();
         }
         #endregion
