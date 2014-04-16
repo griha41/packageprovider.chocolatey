@@ -1,5 +1,5 @@
 ﻿function Get-BinRoot {
-	return $state.GetChocolateyBinRoot();
+	return $request.GetChocolateyBinRoot();
 }
 
 function Install-ChocolateyPackage {
@@ -53,7 +53,7 @@ function Install-ChocolateyPackage {
 		[string] $url64bit = '',
 		$validExitCodes = @(0)
 	)
-	return $state.InstallChocolateyPackage( $packageName, $fileType , $silentArgs , $url, $url64bit , $validExitCodes , (get-location) );
+	return $request.InstallChocolateyPackage( $packageName, $fileType , $silentArgs , $url, $url64bit , $validExitCodes , (get-location) );
 }
 
 function Install-ChocolateyZipPackage  {
@@ -98,7 +98,7 @@ function Install-ChocolateyZipPackage  {
 		[string] $url64bit = $url,
 		[string] $specificFolder =""
 	)
-	return $state.InstallChocolateyZipPackage($packageName, $url, $unzipLocation, $url64bit , $specificFolder , (get-location) );
+	return $request.InstallChocolateyZipPackage($packageName, $url, $unzipLocation, $url64bit , $specificFolder , (get-location) );
 }
 
 
@@ -126,7 +126,7 @@ function Install-ChocolateyPowershellCommand {
 		[string] $url ='',
 		[string] $url64bit = $url
 	)
-	return $state.InstallChocolateyPowershellCommand( $packageName, $psFileFullPath, $url, $url64bit , (get-location) );
+	return $request.InstallChocolateyPowershellCommand( $packageName, $psFileFullPath, $url, $url64bit , (get-location) );
 }
 
 function Install-ChocolateyVsixPackage {
@@ -172,7 +172,7 @@ function Install-ChocolateyVsixPackage {
 		[string]$vsixUrl,
 		[int]$vsVersion=0
 	)
-	return $state.InstallChocolateyVsixPackage( $packageName, $vsixUrl, $vsVersion  );
+	return $request.InstallChocolateyVsixPackage( $packageName, $vsixUrl, $vsVersion  );
 }
 
 function Start-ChocolateyProcessAsAdmin {
@@ -197,7 +197,7 @@ function Start-ChocolateyProcessAsAdmin {
 		[switch] $noSleep,
 		$validExitCodes = @(0)
 	)
-	if( !$state.StartChocolateyProcessAsAdmin( $statements, $exeToRun, $minimized , $noSleep, $validExitCodes, (get-location) ) ) {
+	if( !$request.StartChocolateyProcessAsAdmin( $statements, $exeToRun, $minimized , $noSleep, $validExitCodes, (get-location) ) ) {
 		throw "Process Failed"
 	}
 }
@@ -248,7 +248,7 @@ function Install-ChocolateyInstallPackage {
 		[string] $file,
 		$validExitCodes = @(0)
 	)
-	return $state.InstallChocolateyInstallPackage($packageName, $fileType, $silentArgs, $file, $validExitCodes , (get-location));
+	return $request.InstallChocolateyInstallPackage($packageName, $fileType, $silentArgs, $file, $validExitCodes , (get-location));
 }
 
 
@@ -274,7 +274,7 @@ function Install-ChocolateyPath {
 		$pathType = "user"
 	}
 
-	return $state.InstallChocolateyPath($pathToInstall, $pathType );
+	return $request.InstallChocolateyPath($pathToInstall, $pathType );
 }
 
 
@@ -322,12 +322,12 @@ function Install-ChocolateyEnvironmentVariable {
 		$variableType = "machine"
 	}
 	if( $variableType -eq "machine" ) {
-		if( !$state.IsElevated() ) {
+		if( !$request.IsElevated() ) {
 			Start-ChocolateyProcessAsAdmin "Install-ChocolateyEnvironmentVariable `'$variableName`' `'$variableValue`' `'$variableType`'"
 			return $True;
 		}
 	}
-	return $state.SetEnvironmentVariable( $variableName , $variableValue , $variableType );
+	return $request.SetEnvironmentVariable( $variableName , $variableValue , $variableType );
 }
 function Install-ChocolateyExplorerMenuItem {
 <#
@@ -378,7 +378,7 @@ function Install-ChocolateyExplorerMenuItem {
 		[ValidateSet('file','directory')]
 		[string]$type = "file"
 	)
-	return $state.InstallChocolateyExplorerMenuItem( $menuKey , $menuLabel , $command , $type );
+	return $request.InstallChocolateyExplorerMenuItem( $menuKey , $menuLabel , $command , $type );
 }
 
 function Uninstall-ChocolateyPackage {
@@ -421,7 +421,7 @@ function Uninstall-ChocolateyPackage {
 		[string] $file,
 		$validExitCodes = @(0)
 	)
-	return $state.UninstallChocolateyPackage($packageName, $fileType, $silentArgs, $file, $validExitCodes, (get-location));
+	return $request.UninstallChocolateyPackage($packageName, $fileType, $silentArgs, $file, $validExitCodes, (get-location));
 }
 
 
@@ -453,7 +453,7 @@ function UnInstall-ChocolateyZipPackage {
 		[string] $packageName, 
 		[string] $zipFileName
 	)
-	return $state.UnInstallChocolateyZipPackage( $packageName, $zipFileName );
+	return $request.UnInstallChocolateyZipPackage( $packageName, $zipFileName );
 }
 
 function Install-ChocolateyFileAssociation {
@@ -487,7 +487,7 @@ This will create an association between Sublime Text 2 and all .txt files. Any .
 		[string] $extension,
 		[string] $executable
 	)
-	return $state.InstallChocolateyFileAssociation( $extension, $executable );
+	return $request.InstallChocolateyFileAssociation( $extension, $executable );
 }
 
 
@@ -499,7 +499,7 @@ function Update-SessionEnvironment {
 	Refreshes the current powershell session with all environment settings possibly performed by chocolatey package installs.
 
 #>
-	$state.UpdateSessionEnvironment();
+	$request.UpdateSessionEnvironment();
 }
 		
 function Get-ChocolateyWebFile {
@@ -540,7 +540,7 @@ Install-ChocolateyPackage
 	  [string] $url,
 	  [string] $url64bit = ''
 	)
-	return $state.GetChocolateyWebFile($packageName, $fileFullPath , $url, $url64bit );
+	return $request.GetChocolateyWebFile($packageName, $fileFullPath , $url, $url64bit );
 }
 
 function Get-ChocolateyUnzip {
@@ -581,7 +581,7 @@ function Get-ChocolateyUnzip {
 		[string] $specificFolder,
 		[string] $packageName
 	)
-	return $state.GetChocolateyUnzip( $fileFullPath , $destination , $specificFolder , $packageName );
+	return $request.GetChocolateyUnzip( $fileFullPath , $destination , $specificFolder , $packageName );
 }
 
 
@@ -597,11 +597,11 @@ function Install-ChocolateyDesktopLink {
 	param(
 		 [string] $targetFilePath
 	)
-	$desktopFolder = $state.GetKnownFolder( "Desktop" );
+	$desktopFolder = $request.GetKnownFolder( "Desktop" );
 	$linkName = "$([System.IO.Path]::GetFileName($targetFilePath)).lnk"
 	$link = Join-Path $desktop $linkName 
 	$workingDirectory = $([System.IO.Path]::GetDirectoryName($targetFilePath))
-	if( !$state.CreateShortcutLink( $link, $targetFilePath , "", $workingDirectory , "" ) ) {
+	if( !$request.CreateShortcutLink( $link, $targetFilePath , "", $workingDirectory , "" ) ) {
 		throw "Failed";
 	}
 }
@@ -623,7 +623,7 @@ function Install-ChocolateyPinnedTaskBarItem {
 	param(
 		[string] $targetFilePath
 	)
-	return $state.InstallChocolateyPinnedTaskBarItem($targetFilePath);
+	return $request.InstallChocolateyPinnedTaskBarItem($targetFilePath);
 }
 
 function Get-ProcessorBits {
@@ -669,7 +669,7 @@ function Write-Debug {
 		[Parameter(Mandatory=$false)][Object] $Separator    
 	)
 	# just forward to the OneGet Verbose channel. (Chocolatey didn't mean 'debug')
-	$state.Verbose(  $Message , $Separator );
+	$request.Verbose(  $Message , $Separator );
 }
 
 function Write-Verbose {
@@ -681,7 +681,7 @@ function Write-Verbose {
 		[Parameter(Mandatory=$false)][Object] $Separator    
 	)
 	# just forward to the OneGet Verbose channel. (Chocolatey didn't mean 'debug')
-	$state.Verbose(  $Message , $Separator );
+	$request.Verbose(  $Message , $Separator );
 }
 
 function Write-Error {
@@ -697,7 +697,7 @@ function Write-Error {
 		[Parameter(Mandatory=$false)][string] $RecommendedAction
 	)
 	# forward to the OneGet error channel.
-  	$state.Error( $Category, $Message );
+  	$request.Error( $Category, $Message );
 
 	# todo: what are we doing with the rest of the parameters? More Messages?
 }
@@ -712,14 +712,14 @@ function Write-Host {
 	)
 	# just forward to the OneGet Verbose channel.
 	# Writing objects is reseved for output.
-	$state.Verbose(  $Message , $Separator );
+	$request.Verbose(  $Message , $Separator );
 }
 
 function Write-ChocolateySuccess {
 	param(
 		[string] $packageName
 	)
-	$state.Verbose( "Installation Successful", $packageName  );
+	$request.Verbose( "Installation Successful", $packageName  );
 }
 
 
@@ -738,7 +738,7 @@ function Write-ChocolateyFailure {
 		[string] $packageName,
 		[string] $failureMessage
 	)
-	$state.Error( "FAILURE" , "$packageName, $failureMessage"  );
+	$request.Error( "FAILURE" , "$packageName, $failureMessage"  );
 }
 
 function Get-EnvironmentVar {
@@ -756,9 +756,9 @@ function Generate-BinFile {
 		[switch] $useStart
 	)
 	if( $useStart ) {
-		return $state.GenerateGuiBin( $path, $name  );
+		return $request.GenerateGuiBin( $path, $name  );
 	}
-	return $state.GenerateConsoleBin( $path, $name );
+	return $request.GenerateConsoleBin( $path, $name );
 }
 
 function Remove-BinFile {
@@ -766,7 +766,7 @@ function Remove-BinFile {
 		[string] $name, 
 		[string] $path
 	)
-	return $state.RemoveConsoleBin( $path, $name );
+	return $request.RemoveConsoleBin( $path, $name );
 }
 
 function Write-FileUpdateLog {
@@ -776,7 +776,7 @@ function Write-FileUpdateLog {
 		[scriptblock] $scriptToRun
 	)
 
-	$snapshot = $state.SnapshotFolder( $locationToMonitor );
+	$snapshot = $request.SnapshotFolder( $locationToMonitor );
 
 	& $scriptToRun
 
@@ -791,7 +791,7 @@ function Get-WebFile {
 		[switch]$Passthru,
 		[switch]$quiet
 	)
-	return $state.GetWebFile( $url, $fileName, $userAgent, $passthru, $quiet );
+	return $request.GetWebFile( $url, $fileName, $userAgent, $passthru, $quiet );
 }
 
 function Get-FtpFile {
@@ -802,5 +802,5 @@ function Get-FtpFile {
 		$password = $null,
 		[switch]$quiet
 	) 
-	return $state.GetFtpFile( $url, $fileName, $username, $password, $quiet );
+	return $request.GetFtpFile( $url, $fileName, $username, $password, $quiet );
 }

@@ -33,7 +33,7 @@ namespace OneGet.PackageProvider.Chocolatey {
         }
 
         public bool FindPackage(string name, string requiredVersion, string minimumVersion, string maximumVersion, Callback c) {
-            using (var state = new ChocolateyState(c)) {
+            using (var state = new ChocolateyRequest(c)) {
                 var allowPrerelease = state.AllowPrereleaseVersions;
 
                 // get the package by ID first.
@@ -53,7 +53,7 @@ namespace OneGet.PackageProvider.Chocolatey {
         }
 
         public bool InstallPackageByFastpath(string fastPath, Callback c) {
-            using (var state = new ChocolateyState(c)) {
+            using (var state = new ChocolateyRequest(c)) {
                 var pkgRef = state.GetPackageByFastpath(fastPath);
 
                 if (pkgRef != null) {
@@ -95,7 +95,7 @@ namespace OneGet.PackageProvider.Chocolatey {
             if (c == null) {
                 throw new ArgumentNullException("c");
             }
-            using (var state = new ChocolateyState(c)) {
+            using (var state = new ChocolateyRequest(c)) {
                 var nupkgs = Directory.EnumerateFileSystemEntries(state.PackageInstallationPath, "*.nupkg", SearchOption.AllDirectories);
                 foreach (var pkgFile in nupkgs) {
                     if (PackageHelper.IsPackageFile(pkgFile)) {
@@ -105,7 +105,7 @@ namespace OneGet.PackageProvider.Chocolatey {
                         // if this is an exact match, just return that.
                         if (pkg.Id.Equals(name, StringComparison.CurrentCultureIgnoreCase)) {
                             var fastpath = state.MakeFastPath(pkgFile, pkg.Id, pkg.Version.ToString());
-                            if (!c.YieldPackage(fastpath, pkg.Id, pkg.Version.ToString(), "semver", pkg.Summary, state.GetNameForSource(pkgFile))) {
+                            if (!state.YieldPackage(fastpath, pkg.Id, pkg.Version.ToString(), "semver", pkg.Summary, state.GetNameForSource(pkgFile))) {
                                 return false;
                             }
                             break;
@@ -114,7 +114,7 @@ namespace OneGet.PackageProvider.Chocolatey {
                         //otherwise return partial matches.
                         if (string.IsNullOrEmpty(name) || pkg.Id.IndexOf(name, StringComparison.CurrentCultureIgnoreCase) > -1 ) {
                             var fastpath = state.MakeFastPath(pkgFile, pkg.Id, pkg.Version.ToString());
-                            if (!c.YieldPackage(fastpath, pkg.Id, pkg.Version.ToString(), "semver", pkg.Summary, state.GetNameForSource(pkgFile))) {
+                            if (!state.YieldPackage(fastpath, pkg.Id, pkg.Version.ToString(), "semver", pkg.Summary, state.GetNameForSource(pkgFile))) {
                                 return false;
                             }
                         }
@@ -132,13 +132,13 @@ namespace OneGet.PackageProvider.Chocolatey {
                 throw new ArgumentNullException("c");
             }
 
-            using (var state = new ChocolateyState(c)) {
+            using (var state = new ChocolateyRequest(c)) {
                 return state.UninstallPackage(fastPath, false);
             }
         }
 
         public bool InstallPackageByFile(string filePath, Callback c) {
-            using (var state = new ChocolateyState(c)) {
+            using (var state = new ChocolateyRequest(c)) {
                 filePath = Path.GetFullPath(filePath);
                 if (FilesystemExtensions.FileExists(filePath)) {
                     var pkgRef = state.GetPackageByPath(filePath);
@@ -149,13 +149,13 @@ namespace OneGet.PackageProvider.Chocolatey {
 
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
         internal bool FindPackageByFile(string filePath, Callback c) {
-            using (var state = new ChocolateyState(c)) {
+            using (var state = new ChocolateyRequest(c)) {
                 filePath = Path.GetFullPath(filePath);
                 if (FilesystemExtensions.FileExists(filePath)) {
                     if (PackageHelper.IsPackageFile(filePath)) {
                         var pkg = new ZipPackage(filePath);
                         var fastPath = state.MakeFastPath(filePath, pkg.Id, pkg.Version.ToString());
-                        c.YieldPackage(fastPath, pkg.Id, pkg.Version.ToString(), "semver", "", filePath);
+                        state.YieldPackage(fastPath, pkg.Id, pkg.Version.ToString(), "semver", "", filePath);
                     }
                 }
             }
@@ -166,7 +166,7 @@ namespace OneGet.PackageProvider.Chocolatey {
         // internal bool InstallPackageByUri(string uri, Callback c) {return false;}
 
         public void GetMetadataDefinitions(Callback c) {
-            using (var state = new ChocolateyState(c)) {
+            using (var state = new ChocolateyRequest(c)) {
                 if (!state.YieldMetadataDefinition("AllowPrereleaseVersions", "switch", null)) {
                     return;
                 }
@@ -186,7 +186,7 @@ namespace OneGet.PackageProvider.Chocolatey {
         }
 
         public void GetInstallationOptionDefinitions(Callback c) {
-            using (var state = new ChocolateyState(c)) {
+            using (var state = new ChocolateyRequest(c)) {
                 if (!state.YieldInstallationOptionsDefinition("InstallArguments", "string", false, null)) {
                     return;
                 }
@@ -206,7 +206,7 @@ namespace OneGet.PackageProvider.Chocolatey {
         }
 
         public void AddPackageSource(string name, string location, bool trusted, Callback c) {
-            using (var state = new ChocolateyState(c)) {
+            using (var state = new ChocolateyRequest(c)) {
                 if (string.IsNullOrEmpty(name)) {
                     state.Error("Chocolatey Package Sources require parameter", "Name");
                 }
@@ -218,13 +218,13 @@ namespace OneGet.PackageProvider.Chocolatey {
         }
 
         public void RemovePackageSource(string name, Callback c) {
-            using (var state = new ChocolateyState(c)) {
+            using (var state = new ChocolateyRequest(c)) {
                 state.RemovePackageSource(name);
             }
         }
 
         public bool GetPackageSources(Callback c) {
-            using (var state = new ChocolateyState(c)) {
+            using (var state = new ChocolateyRequest(c)) {
                 var sources = state.AllPackageRepositories;
                 foreach (var k in sources.Keys) {
                     state.YieldSource(k, sources[k].Location, sources[k].Trusted);
@@ -234,7 +234,7 @@ namespace OneGet.PackageProvider.Chocolatey {
         }
 
         public bool IsValidPackageSource(string packageSource, Callback c) {
-            using (var state = new ChocolateyState(c)) {
+            using (var state = new ChocolateyRequest(c)) {
                 if (Uri.IsWellFormedUriString(packageSource, UriKind.Absolute)) {
                     var uri = new Uri(packageSource, UriKind.Absolute);
                     switch (uri.Scheme.ToLower(CultureInfo.CurrentCulture)) {
@@ -255,7 +255,7 @@ namespace OneGet.PackageProvider.Chocolatey {
         }
 
         public bool IsTrustedPackageSource(string packageSource, Callback c) {
-            using (var state = new ChocolateyState(c)) {
+            using (var state = new ChocolateyRequest(c)) {
                 var apr = state.AllPackageRepositories;
                 if (apr.ContainsKey(packageSource)) {
                     return apr[packageSource].Trusted;

@@ -21,21 +21,21 @@ namespace OneGet.PackageProvider.Chocolatey {
 
     public class Snapshot {
         private Dictionary<string, FileInfo> _files;
-        private ChocolateyState _state;
+        private ChocolateyRequest _request;
 
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-        internal Snapshot(ChocolateyState state, string folder) {
-            _state = state;
+        internal Snapshot(ChocolateyRequest request, string folder) {
+            _request = request;
             Folder = folder;
-            _state.Verbose("Taking Snapshot", folder);
-            _state.CreateFolder(folder);
+            _request.Verbose("Taking Snapshot", folder);
+            _request.CreateFolder(folder);
             _files = Directory.EnumerateFiles(Folder, "*", SearchOption.AllDirectories).ToDictionary(each => each, each => new FileInfo(each), StringComparer.OrdinalIgnoreCase);
         }
 
         public string Folder {get; internal set;}
 
         public void WriteFileDiffLog(string logPath) {
-            _state.Verbose("Diffing Snapshot", Folder);
+            _request.Verbose("Diffing Snapshot", Folder);
             var now = Directory.EnumerateFiles(Folder, "*", SearchOption.AllDirectories).ToDictionary(each => each, each => new FileInfo(each), StringComparer.OrdinalIgnoreCase);
 
             // modified

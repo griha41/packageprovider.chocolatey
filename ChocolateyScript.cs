@@ -17,10 +17,10 @@ namespace OneGet.PackageProvider.Chocolatey {
     using Microsoft.OneGet.Core;
 
     public class ChocolateyScript {
-        private readonly ChocolateyState _state;
+        private readonly ChocolateyRequest _request;
 
-        internal ChocolateyScript(ChocolateyState state) {
-            _state = state;
+        internal ChocolateyScript(ChocolateyRequest request) {
+            _request = request;
         }
 
         internal void InvokeChocolateyScript(string command, params string[] arguments) {
@@ -30,11 +30,11 @@ namespace OneGet.PackageProvider.Chocolatey {
             
 
             using (dynamic ps = new DynamicPowershell()) {
-                // grant access to the current call state.
-                ps["state"] = _state;
+                // grant access to the current call request.
+                ps["request"] = _request;
 
                 // import our new helpers
-                DynamicPowershellResult result = ps.ImportModule(Name: _state.HelperModulePath, PassThru: true);
+                DynamicPowershellResult result = ps.ImportModule(Name: _request.HelperModulePath, PassThru: true);
                 if (!result.Success) {
                     throw new Exception("Unable to load helper module for install script.");
                 }
@@ -43,12 +43,12 @@ namespace OneGet.PackageProvider.Chocolatey {
 
                 if (!result.Success) {
                     foreach (var i in result.Errors) {
-                        _state.Error(i.CategoryInfo.Reason, i.Exception.Message, null);
+                        _request.Error(i.CategoryInfo.Reason, i.Exception.Message, null);
                     }
                     throw new Exception("Failed executing chocolatey script.");
                 }
 
-                ps["state"] = null;
+                ps["request"] = null;
             }
         }
     }
