@@ -46,15 +46,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CallbackApiDeclarations.cs" />
+    <Compile Include="Utility\CallbackApiDeclarations.cs" />
     <Compile Include="ChocolateyPackageProvider.cs" />
     <Compile Include="ChocolateyScript.cs" />
     <Compile Include="ChocolateyRequest.cs" />
     <Compile Include="CmdLets\InvokeChocolateyScript.cs" />
     <Compile Include="CmdLets\PublishChocolateyPackage.cs" />
     <Compile Include="CmdLets\WriteChocolateyPackage.cs" />
-    <Compile Include="CallbackExtensions.cs" />
-    <Compile Include="Request.cs" />
+    <Compile Include="Utility\CallbackExtensions.cs" />
+    <Compile Include="Utility\Request.cs" />
     <Compile Include="NuGet.cs" />
     <Compile Include="PackageReference.cs" />
     <Compile Include="PackageSource.cs" />

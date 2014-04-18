@@ -15,6 +15,7 @@
 namespace OneGet.PackageProvider.Chocolatey.Utility {
     using System;
     using System.Collections.Generic;
+    using Callback = System.Func<string, System.Collections.Generic.IEnumerable<object>, object>;
 
     internal class Request : IDisposable {
         private Func<string, IEnumerable<object>, object> _callback;
@@ -406,9 +407,9 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
         private GetHostDelegate _GetHostDelegate;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public Func<string, IEnumerable<object>, object> GetHostDelegate( ) {
+        public Callback GetHostDelegate( ) {
             CheckDisposed();
-            return  (_GetHostDelegate ?? (_GetHostDelegate = (_callback.Resolve<GetHostDelegate>() ?? (()=> default(Func<string, IEnumerable<object>, object>) ) )))();
+            return  (_GetHostDelegate ?? (_GetHostDelegate = (_callback.Resolve<GetHostDelegate>() ?? (()=> default(Callback) ) )))();
         }
 
         private IsCancelled _IsCancelled;
@@ -456,6 +457,22 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
         public bool YieldPackage(string fastPath ,string name ,string version ,string versionScheme ,string summary ,string source  ) {
             CheckDisposed();
             return  (_YieldPackage ?? (_YieldPackage = (_callback.Resolve<YieldPackage>() ?? ((pfastPath,pname,pversion,pversionScheme,psummary,psource)=> default(bool) ) )))(fastPath,name,version,versionScheme,summary,source);
+        }
+
+        private YieldPackageDetails _YieldPackageDetails;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
+        public bool YieldPackageDetails(object serializablePackageDetailsObject  ) {
+            CheckDisposed();
+            return  (_YieldPackageDetails ?? (_YieldPackageDetails = (_callback.Resolve<YieldPackageDetails>() ?? ((pserializablePackageDetailsObject)=> default(bool) ) )))(serializablePackageDetailsObject);
+        }
+
+        private YieldPackageSwidtag _YieldPackageSwidtag;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
+        public bool YieldPackageSwidtag(string fastPath ,string xmlOrJsonDoc  ) {
+            CheckDisposed();
+            return  (_YieldPackageSwidtag ?? (_YieldPackageSwidtag = (_callback.Resolve<YieldPackageSwidtag>() ?? ((pfastPath,pxmlOrJsonDoc)=> default(bool) ) )))(fastPath,xmlOrJsonDoc);
         }
 
         private YieldSource _YieldSource;
@@ -644,6 +661,54 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
 
         #region generate-dispatcher protocol-apis
 
+        private ProtocolGetNames _ProtocolGetNames;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
+        public IEnumerable<string> ProtocolGetNames( ) {
+            CheckDisposed();
+            return  (_ProtocolGetNames ?? (_ProtocolGetNames = (_callback.Resolve<ProtocolGetNames>() ?? (()=> default(IEnumerable<string>) ) )))();
+        }
+
+        private ProtocolIsValidSource _ProtocolIsValidSource;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
+        public bool ProtocolIsValidSource(IEnumerable<string> selectedProtocols ,string x  ) {
+            CheckDisposed();
+            return  (_ProtocolIsValidSource ?? (_ProtocolIsValidSource = (_callback.Resolve<ProtocolIsValidSource>() ?? ((pselectedProtocols,px)=> default(bool) ) )))(selectedProtocols,x);
+        }
+
+        private ProtocolGetItemMetadata _ProtocolGetItemMetadata;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
+        public object ProtocolGetItemMetadata(string item  ) {
+            CheckDisposed();
+            return  (_ProtocolGetItemMetadata ?? (_ProtocolGetItemMetadata = (_callback.Resolve<ProtocolGetItemMetadata>() ?? ((pitem)=> default(object) ) )))(item);
+        }
+
+        private ProtocolDownloadItem _ProtocolDownloadItem;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
+        public bool ProtocolDownloadItem(string item  ) {
+            CheckDisposed();
+            return  (_ProtocolDownloadItem ?? (_ProtocolDownloadItem = (_callback.Resolve<ProtocolDownloadItem>() ?? ((pitem)=> default(bool) ) )))(item);
+        }
+
+        private ProtocolUnpackItem _ProtocolUnpackItem;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
+        public bool ProtocolUnpackItem(string item  ) {
+            CheckDisposed();
+            return  (_ProtocolUnpackItem ?? (_ProtocolUnpackItem = (_callback.Resolve<ProtocolUnpackItem>() ?? ((pitem)=> default(bool) ) )))(item);
+        }
+
+        private InstallItem _InstallItem;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
+        public bool InstallItem(string item  ) {
+            CheckDisposed();
+            return  (_InstallItem ?? (_InstallItem = (_callback.Resolve<InstallItem>() ?? ((pitem)=> default(bool) ) )))(item);
+        }
+
         #endregion
 
         public void Dispose() {
@@ -707,6 +772,8 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
             #region dispose-dispatcher request-apis
             _OkToContinue = null;
             _YieldPackage = null;
+            _YieldPackageDetails = null;
+            _YieldPackageSwidtag = null;
             _YieldSource = null;
             _YieldMetadataDefinition = null;
             _YieldInstallationOptionsDefinition = null;
@@ -731,7 +798,12 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
             #endregion
 
             #region dispose-dispatcher protocol-apis
-
+            _ProtocolGetNames = null;
+            _ProtocolIsValidSource = null;
+            _ProtocolGetItemMetadata = null;
+            _ProtocolDownloadItem = null;
+            _ProtocolUnpackItem = null;
+            _InstallItem = null;
             #endregion
 
             _callback = null;

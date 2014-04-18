@@ -15,9 +15,21 @@
 namespace OneGet.PackageProvider.Chocolatey.Utility {
     using System;
     using System.Collections.Generic;
+    using Callback = System.Func<string, System.Collections.Generic.IEnumerable<object>, object>;
 
     #region copy protocol-apis
 
+    public delegate IEnumerable<string> ProtocolGetNames();
+
+    public delegate bool ProtocolIsValidSource(IEnumerable<string> selectedProtocols, string x);
+
+    public delegate object ProtocolGetItemMetadata(string item);
+
+    public delegate bool ProtocolDownloadItem(string item);
+
+    public delegate bool ProtocolUnpackItem(string item);
+
+    public delegate bool InstallItem(string item);
     #endregion
 
     #region copy service-apis
@@ -121,6 +133,10 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
     /// <returns></returns>
     public delegate bool YieldPackage(string fastPath, string name, string version, string versionScheme, string summary, string source);
 
+    public delegate bool YieldPackageDetails(object serializablePackageDetailsObject);
+
+    public delegate bool YieldPackageSwidtag(string fastPath, string xmlOrJsonDoc);
+
     /// <summary>
     ///     Used by a provider to return fields for a package source (repository)
     /// </summary>
@@ -170,7 +186,7 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
 
     public delegate bool ProgressComplete(int activityId, string activity, string message, IEnumerable<object> args = null);
 
-    public delegate Func<string, IEnumerable<object>, object> GetHostDelegate();
+    public delegate Callback GetHostDelegate();
 
     /// <summary>
     ///     The provider can query to see if the operation has been cancelled.

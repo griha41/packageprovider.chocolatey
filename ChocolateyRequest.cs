@@ -556,6 +556,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
 
             if (ShouldProcessPackageInstall(packageReference.Id, packageReference.Version, packageReference.Source)) {
                 // Get NuGet to install the SoftwareIdentity
+                
                 if (NuGetInstall(packageReference.Source, packageReference.Id, packageReference.Version, out success, out already, out failed)) {
                     // NuGet Installations went ok. 
                     switch (success.Count) {
