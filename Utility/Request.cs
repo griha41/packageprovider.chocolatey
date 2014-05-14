@@ -637,26 +637,6 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
 
         #endregion
 
-        #region generate-dispatcher protocol-apis
-
-        private GetProtocolNames _GetProtocolNames;
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public IEnumerable<string> GetProtocolNames( ) {
-            CheckDisposed();
-            return  (_GetProtocolNames ?? (_GetProtocolNames = (_callback.Resolve<GetProtocolNames>() ?? (()=> default(IEnumerable<string>) ) )))();
-        }
-
-        private SelectProtocols _SelectProtocols;
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public IEnumerable<object> SelectProtocols(IEnumerable<string> protocolNames ,Hashtable options  ) {
-            CheckDisposed();
-            return  (_SelectProtocols ?? (_SelectProtocols = (_callback.Resolve<SelectProtocols>() ?? ((pprotocolNames,poptions)=> default(IEnumerable<object>) ) )))(protocolNames,options);
-        }
-
-        #endregion
-
         public void Dispose() {
             // Clearing all of these ensures that the transient APIs 
             // can't be called outside of the appropriate scope.
@@ -739,11 +719,6 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
             _ShouldContinueRunningUninstallScript = null;
             _AskPermission = null;
             _WhatIf = null;
-            #endregion
-
-            #region dispose-dispatcher protocol-apis
-            _GetProtocolNames = null;
-            _SelectProtocols = null;
             #endregion
 
             _callback = null;

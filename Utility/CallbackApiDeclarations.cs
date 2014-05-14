@@ -18,12 +18,6 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
     using System.Collections.Generic;
     using Callback = System.Func<string, System.Collections.Generic.IEnumerable<object>, object>;
 
-    #region copy protocol-apis
-
-    public delegate IEnumerable<string> GetProtocolNames();
-
-    public delegate IEnumerable<object> SelectProtocols(IEnumerable<string> protocolNames, Hashtable options);
-    #endregion
 
     #region copy service-apis
 
