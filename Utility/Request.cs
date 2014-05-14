@@ -14,6 +14,7 @@
 
 namespace OneGet.PackageProvider.Chocolatey.Utility {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using Callback = System.Func<string, System.Collections.Generic.IEnumerable<object>, object>;
 
@@ -343,41 +344,41 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
         private Warning _Warning;
         // Core Callbacks that we'll both use internally and pass on down to providers.
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public bool Warning(string messageCode ,string message ,params object[] args ) {
+        public bool Warning(string message ,params object[] args ) {
             CheckDisposed();
-            return  (_Warning ?? (_Warning = (_callback.Resolve<Warning>() ?? ((pmessageCode,pmessage,pargs)=> default(bool) ) )))(messageCode,message,args);
-        }
-
-        private Message _Message;
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public bool Message(string messageCode ,string message ,params object[] args ) {
-            CheckDisposed();
-            return  (_Message ?? (_Message = (_callback.Resolve<Message>() ?? ((pmessageCode,pmessage,pargs)=> default(bool) ) )))(messageCode,message,args);
+            return  (_Warning ?? (_Warning = (_callback.Resolve<Warning>() ?? ((pmessage,pargs)=> default(bool) ) )))(message,args);
         }
 
         private Error _Error;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public bool Error(string messageCode ,string message ,params object[] args ) {
+        public bool Error(string message ,params object[] args ) {
             CheckDisposed();
-            return  (_Error ?? (_Error = (_callback.Resolve<Error>() ?? ((pmessageCode,pmessage,pargs)=> default(bool) ) )))(messageCode,message,args);
+            return  (_Error ?? (_Error = (_callback.Resolve<Error>() ?? ((pmessage,pargs)=> default(bool) ) )))(message,args);
         }
 
-        private Debug _Debug;
+        private Message _Message;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public bool Debug(string messageCode ,string message ,params object[] args ) {
+        public bool Message(string message ,params object[] args ) {
             CheckDisposed();
-            return  (_Debug ?? (_Debug = (_callback.Resolve<Debug>() ?? ((pmessageCode,pmessage,pargs)=> default(bool) ) )))(messageCode,message,args);
+            return  (_Message ?? (_Message = (_callback.Resolve<Message>() ?? ((pmessage,pargs)=> default(bool) ) )))(message,args);
         }
 
         private Verbose _Verbose;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public bool Verbose(string messageCode ,string message ,params object[] args ) {
+        public bool Verbose(string message ,params object[] args ) {
             CheckDisposed();
-            return  (_Verbose ?? (_Verbose = (_callback.Resolve<Verbose>() ?? ((pmessageCode,pmessage,pargs)=> default(bool) ) )))(messageCode,message,args);
+            return  (_Verbose ?? (_Verbose = (_callback.Resolve<Verbose>() ?? ((pmessage,pargs)=> default(bool) ) )))(message,args);
+        }
+
+        private Debug _Debug;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
+        public bool Debug(string message ,params object[] args ) {
+            CheckDisposed();
+            return  (_Debug ?? (_Debug = (_callback.Resolve<Debug>() ?? ((pmessage,pargs)=> default(bool) ) )))(message,args);
         }
 
         private ExceptionThrown _ExceptionThrown;
@@ -388,20 +389,28 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
             return  (_ExceptionThrown ?? (_ExceptionThrown = (_callback.Resolve<ExceptionThrown>() ?? ((pexceptionType,pmessage,pstacktrace)=> default(bool) ) )))(exceptionType,message,stacktrace);
         }
 
+        private StartProgress _StartProgress;
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
+        public int StartProgress(int parentActivityId ,string message ,params object[] args ) {
+            CheckDisposed();
+            return  (_StartProgress ?? (_StartProgress = (_callback.Resolve<StartProgress>() ?? ((pparentActivityId,pmessage,pargs)=> default(int) ) )))(parentActivityId,message,args);
+        }
+
         private Progress _Progress;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public bool Progress(int activityId ,string activity ,int progress ,string message ,params object[] args ) {
+        public bool Progress(int activityId ,int progress ,string message ,params object[] args ) {
             CheckDisposed();
-            return  (_Progress ?? (_Progress = (_callback.Resolve<Progress>() ?? ((pactivityId,pactivity,pprogress,pmessage,pargs)=> default(bool) ) )))(activityId,activity,progress,message,args);
+            return  (_Progress ?? (_Progress = (_callback.Resolve<Progress>() ?? ((pactivityId,pprogress,pmessage,pargs)=> default(bool) ) )))(activityId,progress,message,args);
         }
 
-        private ProgressComplete _ProgressComplete;
+        private CompleteProgress _CompleteProgress;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public bool ProgressComplete(int activityId ,string activity ,string message ,params object[] args ) {
+        public bool CompleteProgress(int activityId ,bool isSuccessful  ) {
             CheckDisposed();
-            return  (_ProgressComplete ?? (_ProgressComplete = (_callback.Resolve<ProgressComplete>() ?? ((pactivityId,pactivity,pmessage,pargs)=> default(bool) ) )))(activityId,activity,message,args);
+            return  (_CompleteProgress ?? (_CompleteProgress = (_callback.Resolve<CompleteProgress>() ?? ((pactivityId,pisSuccessful)=> default(bool) ) )))(activityId,isSuccessful);
         }
 
         private GetHostDelegate _GetHostDelegate;
@@ -488,74 +497,43 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
             return  (_YieldSource ?? (_YieldSource = (_callback.Resolve<YieldSource>() ?? ((pname,plocation,pisTrusted)=> default(bool) ) )))(name,location,isTrusted);
         }
 
-        private YieldMetadataDefinition _YieldMetadataDefinition;
+        private YieldOptionDefinition _YieldOptionDefinition;
         /// <summary>
     ///     Used by a provider to return the fields for a Metadata Definition
     ///     The cmdlets can use this to supply tab-completion for metadata to the user.
     /// </summary>
-    /// <param name="name"></param>
-    /// <param name="expectedType"></param>
-    /// <param name="permittedValues"></param>
+    /// <param name="category"> one of ['provider', 'source', 'package', 'install']</param>
+    /// <param name="name">the provider-defined name of the option</param>
+    /// <param name="expectedType"> one of ['string','int','path','switch']</param>
+    /// <param name="permittedValues">either a collection of permitted values, or null for any valid value</param>
     /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public bool YieldMetadataDefinition(string name ,string expectedType ,IEnumerable<string> permittedValues  ) {
+        public bool YieldOptionDefinition(OptionCategory category ,string name ,OptionType expectedType ,bool isRequired ,IEnumerable<string> permittedValues  ) {
             CheckDisposed();
-            return  (_YieldMetadataDefinition ?? (_YieldMetadataDefinition = (_callback.Resolve<YieldMetadataDefinition>() ?? ((pname,pexpectedType,ppermittedValues)=> default(bool) ) )))(name,expectedType,permittedValues);
-        }
-
-        private YieldInstallationOptionsDefinition _YieldInstallationOptionsDefinition;
-        /// <summary>
-    ///     Used by a provider to return the fields for an Installation Option Definition
-    ///     The cmdlets can use this to supply tab-completion for installation options to the user.
-    /// </summary>
-    /// <param name="name"></param>
-    /// <param name="expectedType"></param>
-    /// <param name="required"></param>
-    /// <param name="permittedValues"></param>
-    /// <returns></returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public bool YieldInstallationOptionsDefinition(string name ,string expectedType ,bool required ,IEnumerable<string> permittedValues  ) {
-            CheckDisposed();
-            return  (_YieldInstallationOptionsDefinition ?? (_YieldInstallationOptionsDefinition = (_callback.Resolve<YieldInstallationOptionsDefinition>() ?? ((pname,pexpectedType,prequired,ppermittedValues)=> default(bool) ) )))(name,expectedType,required,permittedValues);
+            return  (_YieldOptionDefinition ?? (_YieldOptionDefinition = (_callback.Resolve<YieldOptionDefinition>() ?? ((pcategory,pname,pexpectedType,pisRequired,ppermittedValues)=> default(bool) ) )))(category,name,expectedType,isRequired,permittedValues);
         }
 
         #endregion
 
         #region generate-dispatcher host-apis
 
-        private GetMetadataKeys _GetMetadataKeys;
+        private GetOptionKeys _GetOptionKeys;
         /// <summary>
     ///     Used by a provider to request what metadata keys were passed from the user
     /// </summary>
     /// <returns></returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public IEnumerable<string> GetMetadataKeys( ) {
+        public IEnumerable<string> GetOptionKeys(string category  ) {
             CheckDisposed();
-            return  (_GetMetadataKeys ?? (_GetMetadataKeys = (_callback.Resolve<GetMetadataKeys>() ?? (()=> default(IEnumerable<string>) ) )))();
+            return  (_GetOptionKeys ?? (_GetOptionKeys = (_callback.Resolve<GetOptionKeys>() ?? ((pcategory)=> default(IEnumerable<string>) ) )))(category);
         }
 
-        private GetMetadataValues _GetMetadataValues;
+        private GetOptionValues _GetOptionValues;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public IEnumerable<string> GetMetadataValues(string key  ) {
+        public IEnumerable<string> GetOptionValues(string category ,string key  ) {
             CheckDisposed();
-            return  (_GetMetadataValues ?? (_GetMetadataValues = (_callback.Resolve<GetMetadataValues>() ?? ((pkey)=> default(IEnumerable<string>) ) )))(key);
-        }
-
-        private GetInstallationOptionKeys _GetInstallationOptionKeys;
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public IEnumerable<string> GetInstallationOptionKeys( ) {
-            CheckDisposed();
-            return  (_GetInstallationOptionKeys ?? (_GetInstallationOptionKeys = (_callback.Resolve<GetInstallationOptionKeys>() ?? (()=> default(IEnumerable<string>) ) )))();
-        }
-
-        private GetInstallationOptionValues _GetInstallationOptionValues;
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public IEnumerable<string> GetInstallationOptionValues(string key  ) {
-            CheckDisposed();
-            return  (_GetInstallationOptionValues ?? (_GetInstallationOptionValues = (_callback.Resolve<GetInstallationOptionValues>() ?? ((pkey)=> default(IEnumerable<string>) ) )))(key);
+            return  (_GetOptionValues ?? (_GetOptionValues = (_callback.Resolve<GetOptionValues>() ?? ((pcategory,pkey)=> default(IEnumerable<string>) ) )))(category,key);
         }
 
         private PackageSources _PackageSources;
@@ -661,52 +639,20 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
 
         #region generate-dispatcher protocol-apis
 
-        private ProtocolGetNames _ProtocolGetNames;
+        private GetProtocolNames _GetProtocolNames;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public IEnumerable<string> ProtocolGetNames( ) {
+        public IEnumerable<string> GetProtocolNames( ) {
             CheckDisposed();
-            return  (_ProtocolGetNames ?? (_ProtocolGetNames = (_callback.Resolve<ProtocolGetNames>() ?? (()=> default(IEnumerable<string>) ) )))();
+            return  (_GetProtocolNames ?? (_GetProtocolNames = (_callback.Resolve<GetProtocolNames>() ?? (()=> default(IEnumerable<string>) ) )))();
         }
 
-        private ProtocolIsValidSource _ProtocolIsValidSource;
+        private SelectProtocols _SelectProtocols;
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public bool ProtocolIsValidSource(IEnumerable<string> selectedProtocols ,string x  ) {
+        public IEnumerable<object> SelectProtocols(IEnumerable<string> protocolNames ,Hashtable options  ) {
             CheckDisposed();
-            return  (_ProtocolIsValidSource ?? (_ProtocolIsValidSource = (_callback.Resolve<ProtocolIsValidSource>() ?? ((pselectedProtocols,px)=> default(bool) ) )))(selectedProtocols,x);
-        }
-
-        private ProtocolGetItemMetadata _ProtocolGetItemMetadata;
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public object ProtocolGetItemMetadata(string item  ) {
-            CheckDisposed();
-            return  (_ProtocolGetItemMetadata ?? (_ProtocolGetItemMetadata = (_callback.Resolve<ProtocolGetItemMetadata>() ?? ((pitem)=> default(object) ) )))(item);
-        }
-
-        private ProtocolDownloadItem _ProtocolDownloadItem;
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public bool ProtocolDownloadItem(string item  ) {
-            CheckDisposed();
-            return  (_ProtocolDownloadItem ?? (_ProtocolDownloadItem = (_callback.Resolve<ProtocolDownloadItem>() ?? ((pitem)=> default(bool) ) )))(item);
-        }
-
-        private ProtocolUnpackItem _ProtocolUnpackItem;
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public bool ProtocolUnpackItem(string item  ) {
-            CheckDisposed();
-            return  (_ProtocolUnpackItem ?? (_ProtocolUnpackItem = (_callback.Resolve<ProtocolUnpackItem>() ?? ((pitem)=> default(bool) ) )))(item);
-        }
-
-        private InstallItem _InstallItem;
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Generated Code")]
-        public bool InstallItem(string item  ) {
-            CheckDisposed();
-            return  (_InstallItem ?? (_InstallItem = (_callback.Resolve<InstallItem>() ?? ((pitem)=> default(bool) ) )))(item);
+            return  (_SelectProtocols ?? (_SelectProtocols = (_callback.Resolve<SelectProtocols>() ?? ((pprotocolNames,poptions)=> default(IEnumerable<object>) ) )))(protocolNames,options);
         }
 
         #endregion
@@ -758,13 +704,14 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
 
             #region dispose-dispatcher core-apis
             _Warning = null;
-            _Message = null;
             _Error = null;
-            _Debug = null;
+            _Message = null;
             _Verbose = null;
+            _Debug = null;
             _ExceptionThrown = null;
+            _StartProgress = null;
             _Progress = null;
-            _ProgressComplete = null;
+            _CompleteProgress = null;
             _GetHostDelegate = null;
             _IsCancelled = null;
             #endregion
@@ -775,15 +722,12 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
             _YieldPackageDetails = null;
             _YieldPackageSwidtag = null;
             _YieldSource = null;
-            _YieldMetadataDefinition = null;
-            _YieldInstallationOptionsDefinition = null;
+            _YieldOptionDefinition = null;
             #endregion
 
             #region dispose-dispatcher host-apis
-            _GetMetadataKeys = null;
-            _GetMetadataValues = null;
-            _GetInstallationOptionKeys = null;
-            _GetInstallationOptionValues = null;
+            _GetOptionKeys = null;
+            _GetOptionValues = null;
             _PackageSources = null;
             _GetConfiguration = null;
             _ShouldContinueWithUntrustedPackageSource = null;
@@ -798,12 +742,8 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
             #endregion
 
             #region dispose-dispatcher protocol-apis
-            _ProtocolGetNames = null;
-            _ProtocolIsValidSource = null;
-            _ProtocolGetItemMetadata = null;
-            _ProtocolDownloadItem = null;
-            _ProtocolUnpackItem = null;
-            _InstallItem = null;
+            _GetProtocolNames = null;
+            _SelectProtocols = null;
             #endregion
 
             _callback = null;
@@ -815,4 +755,24 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
             }
         }
     }
+
+    #region copy PackageProvider-types
+public enum OptionCategory {
+        Package = 0,
+        Provider = 1,
+        Source = 2,
+        Install = 3
+    }
+
+    public enum OptionType {
+        String = 0,
+        StringArray = 1,
+        Int = 2,
+        Switch = 3,
+        Path = 4,
+        Uri = 5
+    }
+
+    #endregion
+
 }

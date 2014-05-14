@@ -33,4 +33,9 @@
         'Publish-ChocolateyPackage'
 		'Invoke-ChocolateyScript'
 	)
+
+   	PrivateData = @{
+		"OneGetModule" = "mychocolateymodule.psm1"
+	}
+
 }

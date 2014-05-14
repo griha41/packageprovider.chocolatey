@@ -342,26 +342,26 @@ using NuGet.Commands;
         }
 
         public string MetadataValue(string switchName) {
-            var key = GetMetadataKeys().FirstOrDefault(each => each.Equals(switchName, StringComparison.CurrentCultureIgnoreCase));
-            return GetMetadataValues(key ?? switchName).FirstOrDefault();
+            var key = GetOptionKeys("package").FirstOrDefault(each => each.Equals(switchName, StringComparison.CurrentCultureIgnoreCase));
+            return GetOptionValues("package",key ?? switchName).FirstOrDefault();
         }
 
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
         public string[] MetadataValues(string switchName) {
-            var key = GetMetadataKeys().FirstOrDefault(each => each.Equals(switchName, StringComparison.CurrentCultureIgnoreCase));
-            return GetMetadataValues(key ?? switchName).ToArray();
+            var key = GetOptionKeys("package").FirstOrDefault(each => each.Equals(switchName, StringComparison.CurrentCultureIgnoreCase));
+            return GetOptionValues("package", key ?? switchName).ToArray();
         }
 
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
         public string InstallOption(string switchName) {
-            var key = GetInstallationOptionKeys().FirstOrDefault(each => each.Equals(switchName, StringComparison.CurrentCultureIgnoreCase));
-            return GetInstallationOptionValues(key ?? switchName).FirstOrDefault();
+            var key = GetOptionKeys("install").FirstOrDefault(each => each.Equals(switchName, StringComparison.CurrentCultureIgnoreCase));
+            return GetOptionValues("install", key ?? switchName).FirstOrDefault();
         }
 
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
         public string[] InstallOptions(string switchName) {
-            var key = GetInstallationOptionKeys().FirstOrDefault(each => each.Equals(switchName, StringComparison.CurrentCultureIgnoreCase));
-            return GetInstallationOptionValues(key ?? switchName).ToArray();
+            var key = GetOptionKeys("install").FirstOrDefault(each => each.Equals(switchName, StringComparison.CurrentCultureIgnoreCase));
+            return GetOptionValues("install", key ?? switchName).ToArray();
         }
 
         public bool IsSwitchSet(string switchName) {
@@ -1129,7 +1129,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                         }
                         if ($total -eq $goal) {
                             # Write-Progress "Completed download of $url." "Completed a total of $total bytes of $fileName" -id 0 -Completed 
-                            $state.ProgressComplete( 2, "Completed download of $url.", "Completed a total of $total bytes of $fileName" );
+                            $state.CompleteProgress( 2, "Completed download of $url.", "Completed a total of $total bytes of $fileName" );
                         }
                     }
                 } while ($count -ne 0)
@@ -1219,7 +1219,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                       }
                       if ($total -eq $goal) {
                         # Write-Progress "Completed download of $url." "Completed a total of $total bytes of $fileName" -id 0 -Completed 
-                        $state.ProgressComplete( 2, "Completed download of $url.", "Completed a total of $total bytes of $fileName" )
+                        $state.CompleteProgress( 2, "Completed download of $url.", "Completed a total of $total bytes of $fileName" )
                       }
                    }
                 } while ($count -gt 0)

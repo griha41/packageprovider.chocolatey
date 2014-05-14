@@ -20,6 +20,7 @@ namespace OneGet.PackageProvider.Chocolatey {
     using System.IO;
     using System.Linq;
     using Microsoft.OneGet.Core.Extensions;
+    using Utility;
     using Callback = System.Func<string, System.Collections.Generic.IEnumerable<object>, object>;
 
     public class ChocolateyPackageProvider {
@@ -52,7 +53,7 @@ namespace OneGet.PackageProvider.Chocolatey {
             }
         }
 
-        public bool InstallPackageByFastpath(string fastPath, Callback c) {
+        public bool InstallPackage(string fastPath, Callback c) {
             using (var state = new ChocolateyRequest(c)) {
                 var pkgRef = state.GetPackageByFastpath(fastPath);
 
@@ -62,16 +63,16 @@ namespace OneGet.PackageProvider.Chocolatey {
                     var n = 0;
                     foreach (var d in dependencies) {
                         if (!state.WhatIf()) {
-                            state.Progress(1, "Installing Dependencies", (n*100)/dependencies.Length, "Dependency Package '{0}' ({1} of {2})", d.Id, ++n, dependencies.Length);
+                            state.Progress(1, (n*100)/dependencies.Length, "Dependency Package '{0}' ({1} of {2})", d.Id, ++n, dependencies.Length);
                         }
                         if (!state.InstallSingleChocolateyPackage(d)) {
                             state.Error("InstallFailure", "Dependent Package '{0} {1}' not installed", d.Id, d.Version);
-                            state.ProgressComplete(1, "Installing Dependencies", "Failed");
+                            state.CompleteProgress(1, false);
                             return false;
                         }
                     }
                     if (!state.WhatIf()) {
-                        state.ProgressComplete(1, "Installing Dependencies", "Completed");
+                        state.CompleteProgress(1,true);
                     }
                     // got this far, let's install the package we came here for.
                     if (!state.InstallSingleChocolateyPackage(pkgRef)) {
@@ -165,26 +166,31 @@ namespace OneGet.PackageProvider.Chocolatey {
         // not supported in chocolatey
         // internal bool InstallPackageByUri(string uri, Callback c) {return false;}
 
-        public void GetMetadataDefinitions(Callback c) {
+        public void GetOptionDefinitions(OptionCategory category, Callback c) {
             using (var state = new ChocolateyRequest(c)) {
-                if (!state.YieldMetadataDefinition("AllowPrereleaseVersions", "switch", null)) {
-                    return;
-                }
-                if (!state.YieldMetadataDefinition("AllVersions", "switch", null)) {
-                    return;
-                }
-                if (!state.YieldMetadataDefinition("LocalOnly", "switch", null)) {
-                    return;
-                }
-                if (!state.YieldMetadataDefinition("Hint", "string", null)) {
-                    return;
-                }
-                if (!state.YieldMetadataDefinition("LeavePartialPackageInstalled", "switch", null)) {
-                    return;
+
+                switch (category) {
+                    case OptionCategory.Package:
+                        if (!state.YieldOptionDefinition(OptionCategory.Package, "AllowPrereleaseVersions",OptionType.Switch,false, null)) {
+                            return;
+                        }
+                        if (!state.YieldOptionDefinition(OptionCategory.Package, "AllVersions", OptionType.Switch, false, null)) {
+                            return;
+                        }
+                        if (!state.YieldOptionDefinition(OptionCategory.Package, "LocalOnly", OptionType.Switch, false, null)) {
+                            return;
+                        }
+                        if (!state.YieldOptionDefinition(OptionCategory.Package, "Hint", OptionType.Switch, false, null)) {
+                            return;
+                        }
+                        if (!state.YieldOptionDefinition(OptionCategory.Package, "LeavePartialPackageInstalled", OptionType.Switch, false, null)) {
+                            return;
+                        }
+                        break;
                 }
             }
         }
-
+#if OLD_WAY
         public void GetInstallationOptionDefinitions(Callback c) {
             using (var state = new ChocolateyRequest(c)) {
                 if (!state.YieldInstallationOptionsDefinition("InstallArguments", "string", false, null)) {
@@ -204,7 +210,7 @@ namespace OneGet.PackageProvider.Chocolatey {
                 }
             }
         }
-
+#endif
         public void AddPackageSource(string name, string location, bool trusted, Callback c) {
             using (var state = new ChocolateyRequest(c)) {
                 if (string.IsNullOrEmpty(name)) {
@@ -240,7 +246,7 @@ namespace OneGet.PackageProvider.Chocolatey {
                     switch (uri.Scheme.ToLower(CultureInfo.CurrentCulture)) {
                         case "http":
                         case "https":
-                        case "filePath":
+                        case "file":
                             // we should really do a quick fetch to see if this is actually a good one.
                             return true;
                     }

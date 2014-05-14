@@ -14,22 +14,15 @@
 
 namespace OneGet.PackageProvider.Chocolatey.Utility {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using Callback = System.Func<string, System.Collections.Generic.IEnumerable<object>, object>;
 
     #region copy protocol-apis
 
-    public delegate IEnumerable<string> ProtocolGetNames();
+    public delegate IEnumerable<string> GetProtocolNames();
 
-    public delegate bool ProtocolIsValidSource(IEnumerable<string> selectedProtocols, string x);
-
-    public delegate object ProtocolGetItemMetadata(string item);
-
-    public delegate bool ProtocolDownloadItem(string item);
-
-    public delegate bool ProtocolUnpackItem(string item);
-
-    public delegate bool InstallItem(string item);
+    public delegate IEnumerable<object> SelectProtocols(IEnumerable<string> protocolNames, Hashtable options);
     #endregion
 
     #region copy service-apis
@@ -149,42 +142,34 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
     ///     Used by a provider to return the fields for a Metadata Definition
     ///     The cmdlets can use this to supply tab-completion for metadata to the user.
     /// </summary>
-    /// <param name="name"></param>
-    /// <param name="expectedType"></param>
-    /// <param name="permittedValues"></param>
+    /// <param name="category"> one of ['provider', 'source', 'package', 'install']</param>
+    /// <param name="name">the provider-defined name of the option</param>
+    /// <param name="expectedType"> one of ['string','int','path','switch']</param>
+    /// <param name="permittedValues">either a collection of permitted values, or null for any valid value</param>
     /// <returns></returns>
-    public delegate bool YieldMetadataDefinition(string name, string expectedType, IEnumerable<string> permittedValues);
-
-    /// <summary>
-    ///     Used by a provider to return the fields for an Installation Option Definition
-    ///     The cmdlets can use this to supply tab-completion for installation options to the user.
-    /// </summary>
-    /// <param name="name"></param>
-    /// <param name="expectedType"></param>
-    /// <param name="required"></param>
-    /// <param name="permittedValues"></param>
-    /// <returns></returns>
-    public delegate bool YieldInstallationOptionsDefinition(string name, string expectedType, bool required, IEnumerable<string> permittedValues);
+    public delegate bool YieldOptionDefinition(OptionCategory category, string name, OptionType expectedType, bool isRequired, IEnumerable<string> permittedValues);
     #endregion
 
     #region copy core-apis
 
     // Core Callbacks that we'll both use internally and pass on down to providers.
-    public delegate bool Warning(string messageCode, string message, IEnumerable<object> args = null);
+    public delegate bool Warning( string message, IEnumerable<object> args = null);
 
-    public delegate bool Message(string messageCode, string message, IEnumerable<object> args = null);
+    public delegate bool Error(string message, IEnumerable<object> args = null);
 
-    public delegate bool Error(string messageCode, string message, IEnumerable<object> args = null);
+    public delegate bool Message(string message, IEnumerable<object> args = null);
 
-    public delegate bool Debug(string messageCode, string message, IEnumerable<object> args = null);
+    public delegate bool Verbose(string message, IEnumerable<object> args = null);
 
-    public delegate bool Verbose(string messageCode, string message, IEnumerable<object> args = null);
+    public delegate bool Debug(string message, IEnumerable<object> args = null);
 
     public delegate bool ExceptionThrown(string exceptionType, string message, string stacktrace);
 
-    public delegate bool Progress(int activityId, string activity, int progress, string message, IEnumerable<object> args = null);
+    public delegate int StartProgress(int parentActivityId, string message, IEnumerable<object> args = null);
 
-    public delegate bool ProgressComplete(int activityId, string activity, string message, IEnumerable<object> args = null);
+    public delegate bool Progress(int activityId, int progress, string message, IEnumerable<object> args = null);
+
+    public delegate bool CompleteProgress(int activityId, bool isSuccessful);
 
     public delegate Callback GetHostDelegate();
 
@@ -203,13 +188,9 @@ namespace OneGet.PackageProvider.Chocolatey.Utility {
     ///     Used by a provider to request what metadata keys were passed from the user
     /// </summary>
     /// <returns></returns>
-    public delegate IEnumerable<string> GetMetadataKeys();
+    public delegate IEnumerable<string> GetOptionKeys(string category);
 
-    public delegate IEnumerable<string> GetMetadataValues(string key);
-
-    public delegate IEnumerable<string> GetInstallationOptionKeys();
-
-    public delegate IEnumerable<string> GetInstallationOptionValues(string key);
+    public delegate IEnumerable<string> GetOptionValues(string category, string key);
 
     public delegate IEnumerable<string> PackageSources();
 
