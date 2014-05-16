@@ -28,7 +28,7 @@ namespace OneGet.PackageProvider.Chocolatey {
             _request = request;
             Folder = folder;
             _request.Verbose("Taking Snapshot", folder);
-            _request.CreateFolder(folder);
+            _request.CreateFolder(folder, null);
             _files = Directory.EnumerateFiles(Folder, "*", SearchOption.AllDirectories).ToDictionary(each => each, each => new FileInfo(each), StringComparer.OrdinalIgnoreCase);
         }
 

@@ -45,7 +45,7 @@ using NuGet.Commands;
 
         internal ChocolateyRequest(Callback c) : base(c) {
             if (NuGet.NuGetCorePath == null) {
-                NuGet.NuGetCorePath = GetNuGetDllPath();
+                NuGet.NuGetCorePath = GetNuGetDllPath(_callback);
             }
         }
 
@@ -101,8 +101,8 @@ using NuGet.Commands;
                 if (value == null) {
                     return;
                 }
-                
-                CreateFolder(Path.GetDirectoryName(ChocolateyConfigPath));
+
+                CreateFolder(Path.GetDirectoryName(ChocolateyConfigPath), _callback);
                 value.Save(ChocolateyConfigPath);
             }
         }
@@ -153,7 +153,7 @@ using NuGet.Commands;
             get {
                 var path = Path.Combine(RootInstallationPath, "lib");
                 if (!Directory.Exists(path)) {
-                    CreateFolder(path);
+                    CreateFolder(path, _callback);
                 }
                 return path;
             }
@@ -163,7 +163,7 @@ using NuGet.Commands;
             get {
                 var path = Path.Combine(RootInstallationPath, "bin");
                 if (!Directory.Exists(path)) {
-                    CreateFolder(path);
+                    CreateFolder(path, _callback);
                 }
                 return Path.Combine(RootInstallationPath, "bin");
             }
@@ -174,7 +174,7 @@ using NuGet.Commands;
 #if STATIC_LINK 
                 return typeof (InstallCommand).Assembly.Location;
 #else
-                return _nuGetExePath ?? (_nuGetExePath = GetNuGetExePath());
+                return _nuGetExePath ?? (_nuGetExePath = GetNuGetExePath(_callback));
 #endif
             }
         }
@@ -666,7 +666,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                         YieldPackage(fastPath, id, version, "semver", "", "");
                     }
 
-                    if (IsElevated()) {
+                    if (IsElevated(_callback)) {
                         EnvironmentUtility.SystemPath = EnvironmentUtility.SystemPath.RemoveMissingFolders();
                     }
 
@@ -928,7 +928,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
 
             if (exeToRun.EqualsIgnoreCase("powershell")) {
                 // run as a powershell script
-                if (IsElevated()) {
+                if (IsElevated(_callback)) {
                     Verbose("Already Elevated", "Running PowerShell script in process");
                     // in proc, we're already good.
                     var script = new ChocolateyScript(this);
@@ -950,7 +950,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                     Arguments = statements,
                     WorkingDirectory = workingDirectory,
                     WindowStyle = minimized ? ProcessWindowStyle.Hidden : ProcessWindowStyle.Normal,
-                    Verb = IsElevated() ? "" : "runas",
+                    Verb = IsElevated(_callback) ? "" : "runas",
                 });
 
                 while (!process.WaitForExit(1)) {
@@ -1008,7 +1008,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
 
             Verbose("GetChocolateyWebFile", "{0} => {1}", packageName, url);
 
-            var file = DownloadFile(url, fileFullPath);
+            var file = DownloadFile(url, fileFullPath, _callback);
             if (string.IsNullOrEmpty(file)) {
                 throw new Exception("Failed to download file {0}".format(url));
             }
@@ -1039,8 +1039,8 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                 var tempFolder = FilesystemExtensions.TempPath;
                 var chocTempDir = Path.Combine(tempFolder, "chocolatey");
                 var pkgTempDir = Path.Combine(chocTempDir, packageName);
-                Delete(pkgTempDir);
-                CreateFolder(pkgTempDir);
+                Delete(pkgTempDir, _callback);
+                CreateFolder(pkgTempDir, _callback);
 
                 var file = Path.Combine(pkgTempDir, "{0}install.{1}".format(packageName, fileType));
                 if (GetChocolateyWebFile(packageName, file, url, url64bit)) {
@@ -1070,7 +1070,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
         public bool InstallChocolateyPath(string pathToInstall, string context) {
             if (context.EqualsIgnoreCase("machine")) {
-                if (IsElevated()) {
+                if (IsElevated(_callback)) {
                     EnvironmentUtility.SystemPath = EnvironmentUtility.SystemPath.Append(pathToInstall).RemoveMissingFolders();
                     EnvironmentUtility.Path = EnvironmentUtility.Path.Append(pathToInstall).RemoveMissingFolders();
                     return true;
@@ -1293,7 +1293,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
             if (!FilesystemExtensions.FileExists(vsixInstller)) {
                 throw new Exception("Can't find Visual Studio VSixInstaller.exe {0}".format(vsixInstller));
             }
-            var file = DownloadFile(vsixUrl, Path.Combine(FilesystemExtensions.TempPath, packageName.MakeSafeFileName()));
+            var file = DownloadFile(vsixUrl, Path.Combine(FilesystemExtensions.TempPath, packageName.MakeSafeFileName()), _callback);
             if (string.IsNullOrEmpty(file) || !FilesystemExtensions.FileExists(file)) {
                 throw new Exception("Unable to download file {0}".format(vsixUrl));
             }
@@ -1317,7 +1317,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
             if (key == null) {
                 return false;
             }
-            if (!IsElevated()) {
+            if (!IsElevated(_callback)) {
                 return StartChocolateyProcessAsAdmin("Install-ChocolateyExplorerMenuItem '{0}' '{1}' '{2}' '{3}'".format(menuKey, menuLabel, command, type), "powershell", false, false, new[] {
                     0
                 }, Environment.CurrentDirectory);
@@ -1361,17 +1361,17 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
 
                 if (!string.IsNullOrEmpty(packageName)) {
                     var packageLibPath = Environment.GetEnvironmentVariable("ChocolateyPackageFolder");
-                    CreateFolder(packageLibPath);
+                    CreateFolder(packageLibPath, _callback);
                     var zipFileName = Path.GetFileName(zipfileFullPath);
                     var zipExtractLogFullPath = Path.Combine(packageLibPath, "{0}.txt".format(zipFileName));
                     var snapshot = new Snapshot(this, destination);
-                    foreach (var f in UnzipFileIncremental(fileFullPath, destination)) {
+                    foreach (var f in UnzipFileIncremental(fileFullPath, destination, _callback)) {
                         // Verbose("Unzipped file", f);
                     }
                     snapshot.WriteFileDiffLog(zipExtractLogFullPath);
                 }
                 else {
-                    foreach (var f in UnzipFileIncremental(fileFullPath, destination)) {
+                    foreach (var f in UnzipFileIncremental(fileFullPath, destination, _callback)) {
                         // Verbose("Unzipped file", f);
                     }
                 }
@@ -1391,8 +1391,8 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                 var tempFolder = FilesystemExtensions.TempPath;
                 var chocTempDir = Path.Combine(tempFolder, "chocolatey");
                 var pkgTempDir = Path.Combine(chocTempDir, packageName);
-                Delete(pkgTempDir);
-                CreateFolder(pkgTempDir);
+                Delete(pkgTempDir, _callback);
+                CreateFolder(pkgTempDir, _callback);
 
                 var file = Path.Combine(pkgTempDir, "{0}install.{1}".format(packageName, "zip"));
                 if (GetChocolateyWebFile(packageName, file, url, url64bit)) {
