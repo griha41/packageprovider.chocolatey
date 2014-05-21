@@ -35,7 +35,7 @@
 	)
 
    	PrivateData = @{
-		"OneGetModule" = "mychocolateymodule.psm1"
+		"OneGetModules" = @( "mychocolateymodule.psm1" )
 	}
 
 }

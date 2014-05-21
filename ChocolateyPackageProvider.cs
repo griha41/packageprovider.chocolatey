@@ -166,7 +166,7 @@ namespace OneGet.PackageProvider.Chocolatey {
         // not supported in chocolatey
         // internal bool InstallPackageByUri(string uri, Callback c) {return false;}
 
-        public void GetOptionDefinitions(OptionCategory category, Callback c) {
+        public void GetDynamicOptions(OptionCategory category, Callback c) {
             using (var state = new ChocolateyRequest(c)) {
 
                 switch (category) {
