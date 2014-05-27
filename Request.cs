@@ -33,21 +33,14 @@ using NuGet.Commands;
     using Microsoft.OneGet.Core.Platform;
     using Microsoft.OneGet.Core.Process;
     using Microsoft.Win32;
-    using Utility;
-    using Callback = System.Func<string, System.Collections.Generic.IEnumerable<object>, object>;
 
-    internal class ChocolateyRequest : Request, IDisposable {
+    internal abstract class Request : IDisposable {
         private static readonly Regex _rxPkgParse = new Regex(@"'(?<pkgId>\S*)\s(?<ver>.*?)'");
         internal static string _nuGetExePath;
+        private static dynamic _dynamicInterface;
         private readonly Regex _rxFastPath = new Regex(@"\$(?<source>[\w,\+,\/,=]*)\\(?<id>[\w,\+,\/,=]*)\\(?<version>[\w,\+,\/,=]*)");
         protected Lazy<PackageRepositoryFactory> _packageRepositoryFactory = new Lazy<PackageRepositoryFactory>(() => new PackageRepositoryFactory());
         private List<IPackageRepository> _repositories;
-
-        internal ChocolateyRequest(Callback c) : base(c) {
-            if (NuGet.NuGetCorePath == null) {
-                NuGet.NuGetCorePath = GetNuGetDllPath(_callback);
-            }
-        }
 
         internal string ChocolateyModuleFolder {
             get {
@@ -102,7 +95,7 @@ using NuGet.Commands;
                     return;
                 }
 
-                CreateFolder(Path.GetDirectoryName(ChocolateyConfigPath), _callback);
+                CreateFolder(Path.GetDirectoryName(ChocolateyConfigPath), this);
                 value.Save(ChocolateyConfigPath);
             }
         }
@@ -153,7 +146,7 @@ using NuGet.Commands;
             get {
                 var path = Path.Combine(RootInstallationPath, "lib");
                 if (!Directory.Exists(path)) {
-                    CreateFolder(path, _callback);
+                    CreateFolder(path, this);
                 }
                 return path;
             }
@@ -163,7 +156,7 @@ using NuGet.Commands;
             get {
                 var path = Path.Combine(RootInstallationPath, "bin");
                 if (!Directory.Exists(path)) {
-                    CreateFolder(path, _callback);
+                    CreateFolder(path, this);
                 }
                 return Path.Combine(RootInstallationPath, "bin");
             }
@@ -174,7 +167,7 @@ using NuGet.Commands;
 #if STATIC_LINK 
                 return typeof (InstallCommand).Assembly.Location;
 #else
-                return _nuGetExePath ?? (_nuGetExePath = GetNuGetExePath(_callback));
+                return _nuGetExePath ?? (_nuGetExePath = GetNuGetExePath(this));
 #endif
             }
         }
@@ -190,7 +183,6 @@ using NuGet.Commands;
                 return IsSwitchSet("LeavePartialPackageInstalled");
             }
         }
-
 
         internal bool AllVersions {
             get {
@@ -288,7 +280,6 @@ using NuGet.Commands;
                         try {
                             return _packageRepositoryFactory.Value.CreateRepository(each);
                         } catch {
-
                         }
                         return null;
                     }).WhereNotNull());
@@ -304,6 +295,227 @@ using NuGet.Commands;
             get {
                 return Path.Combine(KnownFolders.GetFolderPath(KnownFolder.Windows), @"System32\WindowsPowerShell\v1.0\", "PowerShell.exe");
             }
+        }
+
+        public void Dispose() {
+        }
+
+        #region copy core-apis
+
+        // Core Callbacks that we'll both use internally and pass on down to providers.
+        public abstract bool Warning(string message, params object[] args);
+
+        public abstract bool Error(string message, params object[] args);
+
+        public abstract bool Message(string message, params object[] args);
+
+        public abstract bool Verbose(string message, params object[] args);
+
+        public abstract bool Debug(string message, params object[] args);
+
+        public abstract bool ExceptionThrown(string exceptionType, string message, string stacktrace);
+
+        public abstract int StartProgress(int parentActivityId, string message, params object[] args);
+
+        public abstract bool Progress(int activityId, int progress, string message, params object[] args);
+
+        public abstract bool CompleteProgress(int activityId, bool isSuccessful);
+
+        /// <summary>
+        ///     The provider can query to see if the operation has been cancelled.
+        ///     This provides for a gentle way for the caller to notify the callee that
+        ///     they don't want any more results.
+        /// </summary>
+        /// <returns>returns TRUE if the operation has been cancelled.</returns>
+        public abstract bool IsCancelled();
+
+        #endregion
+
+        #region copy host-apis
+
+        /// <summary>
+        ///     Used by a provider to request what metadata keys were passed from the user
+        /// </summary>
+        /// <returns></returns>
+        public abstract IEnumerable<string> GetOptionKeys(string category);
+
+        public abstract IEnumerable<string> GetOptionValues(string category, string key);
+
+        public abstract IEnumerable<string> PackageSources();
+
+        /// <summary>
+        ///     Returns a string collection of values from a specified path in a hierarchal
+        ///     configuration hashtable.
+        /// </summary>
+        /// <param name="path">
+        ///     Path to the configuration key. Nodes are traversed by specifying a '/' character:
+        ///     Example: "Providers/Module" ""
+        /// </param>
+        /// <returns>
+        ///     A collection of string values from the configuration.
+        ///     Returns an empty collection if no data is found for that path
+        /// </returns>
+        public abstract IEnumerable<string> GetConfiguration(string path);
+
+        public abstract bool ShouldContinueWithUntrustedPackageSource(string package, string packageSource);
+
+        public abstract bool ShouldProcessPackageInstall(string packageName, string version, string source);
+
+        public abstract bool ShouldProcessPackageUninstall(string packageName, string version);
+
+        public abstract bool ShouldContinueAfterPackageInstallFailure(string packageName, string version, string source);
+
+        public abstract bool ShouldContinueAfterPackageUninstallFailure(string packageName, string version, string source);
+
+        public abstract bool ShouldContinueRunningInstallScript(string packageName, string version, string source, string scriptLocation);
+
+        public abstract bool ShouldContinueRunningUninstallScript(string packageName, string version, string source, string scriptLocation);
+
+        public abstract bool AskPermission(string permission);
+
+        public abstract bool WhatIf();
+
+        #endregion
+
+        #region copy service-apis
+
+        public abstract string GetNuGetExePath(Object c);
+
+        public abstract string GetNuGetDllPath(Object c);
+
+        public abstract string DownloadFile(string remoteLocation, string localLocation, Object c);
+
+        public abstract void AddPinnedItemToTaskbar(string item, Object c);
+
+        public abstract void RemovePinnedItemFromTaskbar(string item, Object c);
+
+        public abstract bool CreateShortcutLink(string linkPath, string targetPath, string description, string workingDirectory, string arguments, Object c);
+
+        public abstract IEnumerable<string> UnzipFileIncremental(string zipFile, string folder, Object c);
+
+        public abstract IEnumerable<string> UnzipFile(string zipFile, string folder, Object c);
+
+        public abstract void AddFileAssociation();
+
+        public abstract void RemoveFileAssociation();
+
+        public abstract void AddExplorerMenuItem();
+
+        public abstract void RemoveExplorerMenuItem();
+
+        public abstract bool SetEnvironmentVariable(string variable, string value, string context, Object c);
+
+        public abstract bool RemoveEnvironmentVariable(string variable, string context, Object c);
+
+        public abstract void AddFolderToPath();
+
+        public abstract void RemoveFolderFromPath();
+
+        public abstract void InstallMSI();
+
+        public abstract void RemoveMSI();
+
+        public abstract void StartProcess();
+
+        public abstract void InstallVSIX();
+
+        public abstract void UninstallVSIX();
+
+        public abstract void InstallPowershellScript();
+
+        public abstract void UninstallPowershellScript();
+
+        public abstract void SearchForExecutable();
+
+        public abstract void GetUserBinFolder();
+
+        public abstract void GetSystemBinFolder();
+
+        public abstract bool CopyFile(string sourcePath, string destinationPath, Object c);
+
+        public abstract void CopyFolder();
+
+        public abstract void Delete(string path, Object c);
+
+        public abstract void DeleteFolder(string folder, Object c);
+
+        public abstract void CreateFolder(string folder, Object c);
+
+        public abstract void DeleteFile(string filename, Object c);
+
+        public abstract void BeginTransaction();
+
+        public abstract void AbortTransaction();
+
+        public abstract void EndTransaction();
+
+        public abstract void GenerateUninstallScript();
+
+        public abstract string GetKnownFolder(string knownFolder, Object c);
+
+        public abstract bool IsElevated(Object c);
+
+        public abstract object GetPackageManagementService(Object c);
+
+        #endregion
+
+        #region copy request-apis
+
+        /// <summary>
+        ///     The provider can query to see if the operation has been cancelled.
+        ///     This provides for a gentle way for the caller to notify the callee that
+        ///     they don't want any more results. It's essentially just !IsCancelled
+        /// </summary>
+        /// <returns>returns FALSE if the operation has been cancelled.</returns>
+        public abstract bool OkToContinue();
+
+        /// <summary>
+        ///     Used by a provider to return fields for a SoftwareIdentity.
+        /// </summary>
+        /// <param name="fastPath"></param>
+        /// <param name="name"></param>
+        /// <param name="version"></param>
+        /// <param name="versionScheme"></param>
+        /// <param name="summary"></param>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public abstract bool YieldPackage(string fastPath, string name, string version, string versionScheme, string summary, string source);
+
+        public abstract bool YieldPackageDetails(object serializablePackageDetailsObject);
+
+        public abstract bool YieldPackageSwidtag(string fastPath, string xmlOrJsonDoc);
+
+        /// <summary>
+        ///     Used by a provider to return fields for a package source (repository)
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        public abstract bool YieldSource(string name, string location, bool isTrusted);
+
+        /// <summary>
+        ///     Used by a provider to return the fields for a Metadata Definition
+        ///     The cmdlets can use this to supply tab-completion for metadata to the user.
+        /// </summary>
+        /// <param name="category"> one of ['provider', 'source', 'package', 'install']</param>
+        /// <param name="name">the provider-defined name of the option</param>
+        /// <param name="expectedType"> one of ['string','int','path','switch']</param>
+        /// <param name="permittedValues">either a collection of permitted values, or null for any valid value</param>
+        /// <returns></returns>
+        public abstract bool YieldDynamicOption(int category, string name, int expectedType, bool isRequired, IEnumerable<string> permittedValues);
+
+        #endregion
+
+        public void InitializeProvider(dynamic dynamicInterface, Object c) {
+            _dynamicInterface = dynamicInterface;
+        }
+
+        public static Request New(Object c) {
+            Request req =  _dynamicInterface.Create<Request>(c);
+            if (NuGet.NuGetCorePath == null) {
+                NuGet.NuGetCorePath = req.GetNuGetDllPath(req);
+            }
+            return req;
         }
 
         internal void AddPackageSource(string id, string location, bool trusted) {
@@ -343,7 +555,7 @@ using NuGet.Commands;
 
         public string MetadataValue(string switchName) {
             var key = GetOptionKeys("package").FirstOrDefault(each => each.Equals(switchName, StringComparison.CurrentCultureIgnoreCase));
-            return GetOptionValues("package",key ?? switchName).FirstOrDefault();
+            return GetOptionValues("package", key ?? switchName).FirstOrDefault();
         }
 
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
@@ -517,18 +729,19 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
         }
 
         public bool IsPackageInstalled(string name, string version) {
-            return (from pkgFile in Directory.EnumerateFileSystemEntries(PackageInstallationPath, "*.nupkg", SearchOption.AllDirectories) 
-                    where PackageHelper.IsPackageFile(pkgFile) select new ZipPackage(pkgFile))
-                    .Any(pkg => pkg.Id.Equals(name, StringComparison.OrdinalIgnoreCase) && pkg.Version.ToString().Equals(version, StringComparison.OrdinalIgnoreCase));
+            return (from pkgFile in Directory.EnumerateFileSystemEntries(PackageInstallationPath, "*.nupkg", SearchOption.AllDirectories)
+                where PackageHelper.IsPackageFile(pkgFile)
+                select new ZipPackage(pkgFile))
+                .Any(pkg => pkg.Id.Equals(name, StringComparison.OrdinalIgnoreCase) && pkg.Version.ToString().Equals(version, StringComparison.OrdinalIgnoreCase));
         }
 
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
         internal string InstalledPackageFile(string name, string version) {
-            return (from pkgFile in Directory.EnumerateFileSystemEntries(PackageInstallationPath, "*.nupkg", SearchOption.AllDirectories) 
-                    where PackageHelper.IsPackageFile(pkgFile) 
-                    let pkg = new ZipPackage(pkgFile) 
-                        where pkg.Id.Equals(name, StringComparison.OrdinalIgnoreCase) && pkg.Version.ToString().Equals(version, StringComparison.OrdinalIgnoreCase) 
-                        select pkgFile).FirstOrDefault();
+            return (from pkgFile in Directory.EnumerateFileSystemEntries(PackageInstallationPath, "*.nupkg", SearchOption.AllDirectories)
+                where PackageHelper.IsPackageFile(pkgFile)
+                let pkg = new ZipPackage(pkgFile)
+                where pkg.Id.Equals(name, StringComparison.OrdinalIgnoreCase) && pkg.Version.ToString().Equals(version, StringComparison.OrdinalIgnoreCase)
+                select pkgFile).FirstOrDefault();
         }
 
         protected bool PostProcessPackageInstall(string pkgName, string pkgVersion) {
@@ -556,7 +769,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
 
             if (ShouldProcessPackageInstall(packageReference.Id, packageReference.Version, packageReference.Source)) {
                 // Get NuGet to install the SoftwareIdentity
-                
+
                 if (NuGetInstall(packageReference.Source, packageReference.Id, packageReference.Version, out success, out already, out failed)) {
                     // NuGet Installations went ok. 
                     switch (success.Count) {
@@ -583,7 +796,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                             } catch (Exception e) {
                                 // Sad. Package had a problem.
                                 // roll it back.
-                                Verbose("PostProcessPackageInstall or YieldPackage threw exception","{0}/{1} \r\n{2}", e.GetType().Name, e.Message, e.StackTrace);
+                                Verbose("PostProcessPackageInstall or YieldPackage threw exception", "{0}/{1} \r\n{2}", e.GetType().Name, e.Message, e.StackTrace);
                                 e.Dump();
                             }
                             if (!LeavePartialPackageInstalled) {
@@ -594,7 +807,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                         default:
                             // what? more than one installed. Not good. Roll em back and complain.
                             // uninstall package.
-                            Error("SomethingBad", "Package '{0} v{1}' installed more than one package, and this was unexpected",packageReference.Id, packageReference.Version );
+                            Error("SomethingBad", "Package '{0} v{1}' installed more than one package, and this was unexpected", packageReference.Id, packageReference.Version);
                             break;
                     }
                 }
@@ -604,7 +817,6 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
 
             return false;
         }
-
 
         public bool UninstallPackage(string fastPath, bool isRollback) {
             string source;
@@ -666,7 +878,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                         YieldPackage(fastPath, id, version, "semver", "", "");
                     }
 
-                    if (IsElevated(_callback)) {
+                    if (IsElevated(this)) {
                         EnvironmentUtility.SystemPath = EnvironmentUtility.SystemPath.RemoveMissingFolders();
                     }
 
@@ -678,9 +890,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                 return false;
             }
             return false;
-
         }
-
 
         internal string ResolveRepository(string repository) {
             if (Uri.IsWellFormedUriString(repository, UriKind.Absolute)) {
@@ -744,7 +954,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                         // we have a compatible version installed.
                         continue;
                     }
-                   
+
                     yield return depRefs[0];
 
                     // it's not installed. return this as a needed package, but first, get it's dependencies.
@@ -846,7 +1056,6 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
 
         public IEnumerable<PackageReference> SearchForPackages(string name, string requiredVersion, string minimumVersion, string maximumVersion) {
             return Repositories.AsParallel().SelectMany(repository => {
-                
                 var packages = repository.GetPackages().Find(Hint.Is() ? Hint : name);
 
                 // why does this method return less results? It looks the same to me!?
@@ -856,7 +1065,6 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
 
                 // query filtering:
                 if (!AllVersions && (string.IsNullOrEmpty(requiredVersion) && string.IsNullOrEmpty(minimumVersion) && string.IsNullOrEmpty(maximumVersion))) {
-
                     //slow, client side way: pkgs = packages.ToEnumerable.GroupBy(p => p.Id).Select(set => set.MyMax(p => p.Version));
                     // new way: uses method in NuGet.exe in 2.8.1.1+
                     pkgs = packages.FindLatestVersion().ToEnumerable;
@@ -889,7 +1097,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
             } catch {
             }
 
-           return apr.Keys.FirstOrDefault(key => {
+            return apr.Keys.FirstOrDefault(key => {
                 var location = apr[key].Location;
                 if (location.Equals(source, StringComparison.OrdinalIgnoreCase)) {
                     return true;
@@ -906,7 +1114,6 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                 }
 
                 return false;
-
             }) ?? source;
         }
 
@@ -928,7 +1135,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
 
             if (exeToRun.EqualsIgnoreCase("powershell")) {
                 // run as a powershell script
-                if (IsElevated(_callback)) {
+                if (IsElevated(this)) {
                     Verbose("Already Elevated", "Running PowerShell script in process");
                     // in proc, we're already good.
                     var script = new ChocolateyScript(this);
@@ -950,7 +1157,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                     Arguments = statements,
                     WorkingDirectory = workingDirectory,
                     WindowStyle = minimized ? ProcessWindowStyle.Hidden : ProcessWindowStyle.Normal,
-                    Verb = IsElevated(_callback) ? "" : "runas",
+                    Verb = IsElevated(this) ? "" : "runas",
                 });
 
                 while (!process.WaitForExit(1)) {
@@ -965,7 +1172,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                     return true;
                 }
                 Error("Process Failed", "{0}", exeToRun);
-                throw new Exception("Process Exited with non-successful exit code {0} : {1} ".format( exeToRun, process.ExitCode));
+                throw new Exception("Process Exited with non-successful exit code {0} : {1} ".format(exeToRun, process.ExitCode));
             } catch (Exception e) {
                 e.Dump();
 
@@ -983,7 +1190,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                 cbr = Environment.GetEnvironmentVariable("chocolatey_bin_root");
                 if (string.IsNullOrEmpty(cbr)) {
                     // nothing at all? use the default
-                    cbr = Path.Combine(SystemDrive+ "\\", "tools");
+                    cbr = Path.Combine(SystemDrive + "\\", "tools");
                     storeValue = true;
                 }
             }
@@ -1008,7 +1215,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
 
             Verbose("GetChocolateyWebFile", "{0} => {1}", packageName, url);
 
-            var file = DownloadFile(url, fileFullPath, _callback);
+            var file = DownloadFile(url, fileFullPath, this);
             if (string.IsNullOrEmpty(file)) {
                 throw new Exception("Failed to download file {0}".format(url));
             }
@@ -1039,8 +1246,8 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                 var tempFolder = FilesystemExtensions.TempPath;
                 var chocTempDir = Path.Combine(tempFolder, "chocolatey");
                 var pkgTempDir = Path.Combine(chocTempDir, packageName);
-                Delete(pkgTempDir, _callback);
-                CreateFolder(pkgTempDir, _callback);
+                Delete(pkgTempDir, this);
+                CreateFolder(pkgTempDir, this);
 
                 var file = Path.Combine(pkgTempDir, "{0}install.{1}".format(packageName, fileType));
                 if (GetChocolateyWebFile(packageName, file, url, url64bit)) {
@@ -1058,10 +1265,6 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
             }
         }
 
-       
-
-       
-
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
         public Snapshot SnapshotFolder(string locationToMonitor) {
             return new Snapshot(this, locationToMonitor);
@@ -1070,7 +1273,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
         public bool InstallChocolateyPath(string pathToInstall, string context) {
             if (context.EqualsIgnoreCase("machine")) {
-                if (IsElevated(_callback)) {
+                if (IsElevated(this)) {
                     EnvironmentUtility.SystemPath = EnvironmentUtility.SystemPath.Append(pathToInstall).RemoveMissingFolders();
                     EnvironmentUtility.Path = EnvironmentUtility.Path.Append(pathToInstall).RemoveMissingFolders();
                     return true;
@@ -1105,7 +1308,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                 # send the ftp request to the server
                 $ftpresponse = $ftprequest.GetResponse()
                 [int]$goal = $ftpresponse.ContentLength
-	
+
                 # get a download stream from the server response
                 $reader = $ftpresponse.GetResponseStream()
 
@@ -1133,7 +1336,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                         }
                     }
                 } while ($count -ne 0)
-	
+
                 $writer.Flush()
                 $writer.close()*/
             return false;
@@ -1161,7 +1364,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                 $proxy.credentials = $creds
                 $req.proxy = $proxy
               }
- 
+
               #http://stackoverflow.com/questions/518181/too-many-automatic-redirections-were-attempted-error-message-when-using-a-httpw
               $req.CookieContainer = New-Object System.Net.CookieContainer
               if ($userAgent -ne $null) {
@@ -1223,7 +1426,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                       }
                    }
                 } while ($count -gt 0)
-   
+
                 $reader.Close()
                 if($fileName) {
                    $writer.Flush()
@@ -1245,7 +1448,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                     GeneratePS1ScriptBin(psFileFullPath);
                     return true;
                 }
-            } 
+            }
 
             Error("Unable to download script", url);
             return false;
@@ -1263,7 +1466,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                 if (f < 10.0) {
                     return null;
                 }
-                
+
                 var vsv = vs.OpenSubKey(each);
                 if (vsv.GetValueNames().Contains("InstallDir", StringComparer.OrdinalIgnoreCase)) {
                     return new {
@@ -1272,7 +1475,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                     };
                 }
                 return null;
-            }).WhereNotNull().OrderByDescending( each => each.Version);
+            }).WhereNotNull().OrderByDescending(each => each.Version);
 
             var reqVsVersion = versions.FirstOrDefault();
 
@@ -1293,13 +1496,13 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
             if (!FilesystemExtensions.FileExists(vsixInstller)) {
                 throw new Exception("Can't find Visual Studio VSixInstaller.exe {0}".format(vsixInstller));
             }
-            var file = DownloadFile(vsixUrl, Path.Combine(FilesystemExtensions.TempPath, packageName.MakeSafeFileName()), _callback);
+            var file = DownloadFile(vsixUrl, Path.Combine(FilesystemExtensions.TempPath, packageName.MakeSafeFileName()), this);
             if (string.IsNullOrEmpty(file) || !FilesystemExtensions.FileExists(file)) {
                 throw new Exception("Unable to download file {0}".format(vsixUrl));
             }
             var process = AsyncProcess.Start(new ProcessStartInfo {
                 FileName = vsixInstller,
-                Arguments = @"/q ""{0}""".format( file),
+                Arguments = @"/q ""{0}""".format(file),
             });
             process.WaitForExit();
             if (process.ExitCode > 0 && process.ExitCode != 1001) {
@@ -1311,13 +1514,13 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
 
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
         public bool InstallChocolateyExplorerMenuItem(string menuKey, string menuLabel, string command, string type) {
-            Verbose("InstallChocolateyExplorerMenuItem", "{0}/{1}/{2}/{3}",menuKey,  menuLabel,  command,  type);
+            Verbose("InstallChocolateyExplorerMenuItem", "{0}/{1}/{2}/{3}", menuKey, menuLabel, command, type);
 
             var key = type == "file" ? "*" : (type == "directory" ? "directory" : null);
             if (key == null) {
                 return false;
             }
-            if (!IsElevated(_callback)) {
+            if (!IsElevated(this)) {
                 return StartChocolateyProcessAsAdmin("Install-ChocolateyExplorerMenuItem '{0}' '{1}' '{2}' '{3}'".format(menuKey, menuLabel, command, type), "powershell", false, false, new[] {
                     0
                 }, Environment.CurrentDirectory);
@@ -1341,13 +1544,12 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                 case "exe":
                     return StartChocolateyProcessAsAdmin("{0}".format(silentArgs), file, true, true, validExitCodes, workingDirectory);
 
-                default :
+                default:
                     Error("Unsupported Uninstall Type", fileType);
                     break;
             }
             return false;
         }
-
 
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
         public string GetChocolateyUnzip(string fileFullPath, string destination, string specificFolder, string packageName) {
@@ -1361,23 +1563,21 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
 
                 if (!string.IsNullOrEmpty(packageName)) {
                     var packageLibPath = Environment.GetEnvironmentVariable("ChocolateyPackageFolder");
-                    CreateFolder(packageLibPath, _callback);
+                    CreateFolder(packageLibPath, this);
                     var zipFileName = Path.GetFileName(zipfileFullPath);
                     var zipExtractLogFullPath = Path.Combine(packageLibPath, "{0}.txt".format(zipFileName));
                     var snapshot = new Snapshot(this, destination);
-                    foreach (var f in UnzipFileIncremental(fileFullPath, destination, _callback)) {
+                    foreach (var f in UnzipFileIncremental(fileFullPath, destination, this)) {
                         // Verbose("Unzipped file", f);
                     }
                     snapshot.WriteFileDiffLog(zipExtractLogFullPath);
-                }
-                else {
-                    foreach (var f in UnzipFileIncremental(fileFullPath, destination, _callback)) {
+                } else {
+                    foreach (var f in UnzipFileIncremental(fileFullPath, destination, this)) {
                         // Verbose("Unzipped file", f);
                     }
                 }
                 return destination;
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.Dump();
                 Error("PackageInstallation Failed", packageName);
                 throw new Exception("Failed Installation");
@@ -1391,8 +1591,8 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                 var tempFolder = FilesystemExtensions.TempPath;
                 var chocTempDir = Path.Combine(tempFolder, "chocolatey");
                 var pkgTempDir = Path.Combine(chocTempDir, packageName);
-                Delete(pkgTempDir, _callback);
-                CreateFolder(pkgTempDir, _callback);
+                Delete(pkgTempDir, this);
+                CreateFolder(pkgTempDir, this);
 
                 var file = Path.Combine(pkgTempDir, "{0}install.{1}".format(packageName, "zip"));
                 if (GetChocolateyWebFile(packageName, file, url, url64bit)) {
@@ -1403,8 +1603,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                     throw new Exception("Failed Install.");
                 }
                 throw new Exception("Failed Download.");
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.Dump();
                 Error("PackageInstallation Failed", packageName);
                 throw new Exception("Failed Installation");
@@ -1418,7 +1617,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                 var packageLibPath = Environment.GetEnvironmentVariable("ChocolateyPackageFolder");
                 var zipContentFile = Path.Combine(packageLibPath, "{0}.txt".format(Path.GetFileName(zipFileName)));
                 if (FilesystemExtensions.FileExists(zipContentFile)) {
-                    foreach (var file in File.ReadAllLines(zipContentFile).Where( each => !string.IsNullOrEmpty(each) && FilesystemExtensions.FileExists(each ))) {
+                    foreach (var file in File.ReadAllLines(zipContentFile).Where(each => !string.IsNullOrEmpty(each) && FilesystemExtensions.FileExists(each))) {
                         file.TryHardToDelete();
                     }
                 }
@@ -1441,13 +1640,15 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
             }
             executable = Path.GetFullPath(executable);
             if (!FilesystemExtensions.FileExists(executable)) {
-                throw new FileNotFoundException("Executable not found",executable);
+                throw new FileNotFoundException("Executable not found", executable);
             }
 
             extension = "." + extension.Trim().Trim('.');
             var fileType = Path.GetFileName(executable).Replace(' ', '_');
 
-            return StartChocolateyProcessAsAdmin(@"/c assoc {0}={1} & ftype {1}={2} ""%1"" %*".format(extension, fileType,executable ), "cmd.exe", false, false, new [] {0}, Environment.CurrentDirectory);
+            return StartChocolateyProcessAsAdmin(@"/c assoc {0}={1} & ftype {1}={2} ""%1"" %*".format(extension, fileType, executable), "cmd.exe", false, false, new[] {
+                0
+            }, Environment.CurrentDirectory);
         }
 
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]

@@ -17,9 +17,9 @@ namespace OneGet.PackageProvider.Chocolatey {
     using Microsoft.OneGet.Core;
 
     public class ChocolateyScript {
-        private readonly ChocolateyRequest _request;
+        private readonly Request _request;
 
-        internal ChocolateyScript(ChocolateyRequest request) {
+        internal ChocolateyScript(Request request) {
             _request = request;
         }
 

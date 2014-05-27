@@ -21,10 +21,10 @@ namespace OneGet.PackageProvider.Chocolatey {
 
     public class Snapshot {
         private Dictionary<string, FileInfo> _files;
-        private ChocolateyRequest _request;
+        private Request _request;
 
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
-        internal Snapshot(ChocolateyRequest request, string folder) {
+        internal Snapshot(Request request, string folder) {
             _request = request;
             Folder = folder;
             _request.Verbose("Taking Snapshot", folder);

@@ -46,24 +46,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Utility\CallbackApiDeclarations.cs" />
     <Compile Include="ChocolateyPackageProvider.cs" />
     <Compile Include="ChocolateyScript.cs" />
-    <Compile Include="ChocolateyRequest.cs" />
+    <Compile Include="Request.cs" />
     <Compile Include="CmdLets\InvokeChocolateyScript.cs" />
     <Compile Include="CmdLets\PublishChocolateyPackage.cs" />
     <Compile Include="CmdLets\WriteChocolateyPackage.cs" />
-    <Compile Include="Utility\CallbackExtensions.cs" />
-    <Compile Include="Utility\Request.cs" />
     <Compile Include="NuGet.cs" />
     <Compile Include="PackageReference.cs" />
     <Compile Include="PackageSource.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Snapshot.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Helpers\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="Chocolatey.format.ps1xml" />
     <None Include="Chocolatey.psd1">
