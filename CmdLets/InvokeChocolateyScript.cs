@@ -36,8 +36,8 @@ namespace OneGet.PackageProvider.Chocolatey.CmdLets {
         public override bool ProcessRecordAsync() {
             var scr = string.IsNullOrEmpty(Base64Script) ? Script : Base64Script.FromBase64();
             try {
-                using (var state = Request.New(Invoke)) {
-                    var script = new ChocolateyScript(state);
+                using (var request = this.As<Request>()) {
+                    var script = new ChocolateyScript(request);
                     script.InvokeChocolateyScript(scr, Arguments);
                 }
             } catch (Exception e) {

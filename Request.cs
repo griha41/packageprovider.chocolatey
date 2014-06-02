@@ -33,13 +33,13 @@ using NuGet.Commands;
     using Microsoft.OneGet.Core.Platform;
     using Microsoft.OneGet.Core.Process;
     using Microsoft.Win32;
+    using Callback = System.Object;
 
-    internal abstract class Request : IDisposable {
+    public abstract class Request : IDisposable {
         private static readonly Regex _rxPkgParse = new Regex(@"'(?<pkgId>\S*)\s(?<ver>.*?)'");
         internal static string _nuGetExePath;
-        private static dynamic _dynamicInterface;
         private readonly Regex _rxFastPath = new Regex(@"\$(?<source>[\w,\+,\/,=]*)\\(?<id>[\w,\+,\/,=]*)\\(?<version>[\w,\+,\/,=]*)");
-        protected Lazy<PackageRepositoryFactory> _packageRepositoryFactory = new Lazy<PackageRepositoryFactory>(() => new PackageRepositoryFactory());
+        internal Lazy<PackageRepositoryFactory> _packageRepositoryFactory = new Lazy<PackageRepositoryFactory>(() => new PackageRepositoryFactory());
         private List<IPackageRepository> _repositories;
 
         internal string ChocolateyModuleFolder {
@@ -269,7 +269,7 @@ using NuGet.Commands;
 
                     // grab all the repositories that are specified by the user.
 
-                    var allSources = (PackageSources() ?? AllPackageRepositories.Values.Select(each => each.Name)).ToArray();
+                    var allSources = (GetSpecifiedPackageSources() ?? AllPackageRepositories.Values.Select(each => each.Name)).ToArray();
 
                     // did we get any?
                     if (allSources.Length == 0) {
@@ -297,27 +297,25 @@ using NuGet.Commands;
             }
         }
 
-        public void Dispose() {
-        }
-
         #region copy core-apis
 
-        // Core Callbacks that we'll both use internally and pass on down to providers.
-        public abstract bool Warning(string message, params object[] args);
+        public abstract string GetMessageString(string message);
 
-        public abstract bool Error(string message, params object[] args);
+        public abstract bool Warning(string message);
 
-        public abstract bool Message(string message, params object[] args);
+        public abstract bool Error(string message);
 
-        public abstract bool Verbose(string message, params object[] args);
+        public abstract bool Message(string message);
 
-        public abstract bool Debug(string message, params object[] args);
+        public abstract bool Verbose(string message);
+
+        public abstract bool Debug(string message);
 
         public abstract bool ExceptionThrown(string exceptionType, string message, string stacktrace);
 
-        public abstract int StartProgress(int parentActivityId, string message, params object[] args);
+        public abstract int StartProgress(int parentActivityId, string message);
 
-        public abstract bool Progress(int activityId, int progress, string message, params object[] args);
+        public abstract bool Progress(int activityId, int progress, string message);
 
         public abstract bool CompleteProgress(int activityId, bool isSuccessful);
 
@@ -328,10 +326,11 @@ using NuGet.Commands;
         /// </summary>
         /// <returns>returns TRUE if the operation has been cancelled.</returns>
         public abstract bool IsCancelled();
-
         #endregion
 
         #region copy host-apis
+
+        public abstract object GetPackageManagementService();
 
         /// <summary>
         ///     Used by a provider to request what metadata keys were passed from the user
@@ -341,21 +340,7 @@ using NuGet.Commands;
 
         public abstract IEnumerable<string> GetOptionValues(string category, string key);
 
-        public abstract IEnumerable<string> PackageSources();
-
-        /// <summary>
-        ///     Returns a string collection of values from a specified path in a hierarchal
-        ///     configuration hashtable.
-        /// </summary>
-        /// <param name="path">
-        ///     Path to the configuration key. Nodes are traversed by specifying a '/' character:
-        ///     Example: "Providers/Module" ""
-        /// </param>
-        /// <returns>
-        ///     A collection of string values from the configuration.
-        ///     Returns an empty collection if no data is found for that path
-        /// </returns>
-        public abstract IEnumerable<string> GetConfiguration(string path);
+        public abstract IEnumerable<string> GetSpecifiedPackageSources();
 
         public abstract bool ShouldContinueWithUntrustedPackageSource(string package, string packageSource);
 
@@ -374,26 +359,25 @@ using NuGet.Commands;
         public abstract bool AskPermission(string permission);
 
         public abstract bool WhatIf();
-
         #endregion
 
         #region copy service-apis
 
-        public abstract string GetNuGetExePath(Object c);
+        public abstract string GetNuGetExePath(Callback c);
 
-        public abstract string GetNuGetDllPath(Object c);
+        public abstract string GetNuGetDllPath(Callback c);
 
-        public abstract string DownloadFile(string remoteLocation, string localLocation, Object c);
+        public abstract string DownloadFile(string remoteLocation, string localLocation, Callback c);
 
-        public abstract void AddPinnedItemToTaskbar(string item, Object c);
+        public abstract void AddPinnedItemToTaskbar(string item, Callback c);
 
-        public abstract void RemovePinnedItemFromTaskbar(string item, Object c);
+        public abstract void RemovePinnedItemFromTaskbar(string item, Callback c);
 
-        public abstract bool CreateShortcutLink(string linkPath, string targetPath, string description, string workingDirectory, string arguments, Object c);
+        public abstract bool CreateShortcutLink(string linkPath, string targetPath, string description, string workingDirectory, string arguments, Callback c);
 
-        public abstract IEnumerable<string> UnzipFileIncremental(string zipFile, string folder, Object c);
+        public abstract IEnumerable<string> UnzipFileIncremental(string zipFile, string folder, Callback c);
 
-        public abstract IEnumerable<string> UnzipFile(string zipFile, string folder, Object c);
+        public abstract IEnumerable<string> UnzipFile(string zipFile, string folder, Callback c);
 
         public abstract void AddFileAssociation();
 
@@ -403,9 +387,9 @@ using NuGet.Commands;
 
         public abstract void RemoveExplorerMenuItem();
 
-        public abstract bool SetEnvironmentVariable(string variable, string value, string context, Object c);
+        public abstract bool SetEnvironmentVariable(string variable, string value, string context, Callback c);
 
-        public abstract bool RemoveEnvironmentVariable(string variable, string context, Object c);
+        public abstract bool RemoveEnvironmentVariable(string variable, string context, Callback c);
 
         public abstract void AddFolderToPath();
 
@@ -431,17 +415,17 @@ using NuGet.Commands;
 
         public abstract void GetSystemBinFolder();
 
-        public abstract bool CopyFile(string sourcePath, string destinationPath, Object c);
+        public abstract bool CopyFile(string sourcePath, string destinationPath, Callback c);
 
         public abstract void CopyFolder();
 
-        public abstract void Delete(string path, Object c);
+        public abstract void Delete(string path, Callback c);
 
-        public abstract void DeleteFolder(string folder, Object c);
+        public abstract void DeleteFolder(string folder, Callback c);
 
-        public abstract void CreateFolder(string folder, Object c);
+        public abstract void CreateFolder(string folder, Callback c);
 
-        public abstract void DeleteFile(string filename, Object c);
+        public abstract void DeleteFile(string filename, Callback c);
 
         public abstract void BeginTransaction();
 
@@ -451,12 +435,11 @@ using NuGet.Commands;
 
         public abstract void GenerateUninstallScript();
 
-        public abstract string GetKnownFolder(string knownFolder, Object c);
+        public abstract string GetKnownFolder(string knownFolder, Callback c);
 
-        public abstract bool IsElevated(Object c);
+        public abstract bool IsElevated(Callback c);
 
-        public abstract object GetPackageManagementService(Object c);
-
+        public abstract object GetPackageManagementService(Callback c);
         #endregion
 
         #region copy request-apis
@@ -478,8 +461,9 @@ using NuGet.Commands;
         /// <param name="versionScheme"></param>
         /// <param name="summary"></param>
         /// <param name="source"></param>
+        /// <param name="searchKey"></param>
         /// <returns></returns>
-        public abstract bool YieldPackage(string fastPath, string name, string version, string versionScheme, string summary, string source);
+        public abstract bool YieldPackage(string fastPath, string name, string version, string versionScheme, string summary, string source, string searchKey);
 
         public abstract bool YieldPackageDetails(object serializablePackageDetailsObject);
 
@@ -491,7 +475,7 @@ using NuGet.Commands;
         /// <param name="name"></param>
         /// <param name="location"></param>
         /// <returns></returns>
-        public abstract bool YieldSource(string name, string location, bool isTrusted);
+        public abstract bool YieldPackageSource(string name, string location, bool isTrusted);
 
         /// <summary>
         ///     Used by a provider to return the fields for a Metadata Definition
@@ -500,23 +484,52 @@ using NuGet.Commands;
         /// <param name="category"> one of ['provider', 'source', 'package', 'install']</param>
         /// <param name="name">the provider-defined name of the option</param>
         /// <param name="expectedType"> one of ['string','int','path','switch']</param>
-        /// <param name="permittedValues">either a collection of permitted values, or null for any valid value</param>
+        /// <param name="isRequired">if the parameter is mandatory</param>
         /// <returns></returns>
-        public abstract bool YieldDynamicOption(int category, string name, int expectedType, bool isRequired, IEnumerable<string> permittedValues);
+        public abstract bool YieldDynamicOption(int category, string name, int expectedType, bool isRequired);
 
+        public abstract bool YieldKeyValuePair(string key, string value);
+
+        public abstract bool YieldValue(string value);
         #endregion
 
-        public void InitializeProvider(dynamic dynamicInterface, Object c) {
-            _dynamicInterface = dynamicInterface;
+        public bool YieldDynamicOption(OptionCategory category, string name, OptionType expectedType, bool isRequired, IEnumerable<object> permittedValues) {
+            return YieldDynamicOption((int)category, name, (int)expectedType, isRequired) && permittedValues == null || permittedValues.Where(v => v != null).All(v => YieldKeyValuePair(name, v.ToString()));
         }
 
-        public static Request New(Object c) {
-            Request req =  _dynamicInterface.Create<Request>(c);
-            if (NuGet.NuGetCorePath == null) {
-                NuGet.NuGetCorePath = req.GetNuGetDllPath(req);
-            }
-            return req;
+        #region copy Request-implementation
+public bool Warning(string message, params object[] args) {
+            return Warning(string.Format(GetMessageString(message) ?? message, args));
         }
+
+        public bool Error(string message, params object[] args) {
+            return Error(string.Format(GetMessageString(message) ?? message, args));
+        }
+
+        public bool Message(string message, params object[] args) {
+            return Message(string.Format(GetMessageString(message) ?? message, args));
+        }
+
+        public bool Verbose(string message, params object[] args) {
+            return Verbose(string.Format(GetMessageString(message) ?? message, args));
+        }
+
+        public bool Debug(string message, params object[] args) {
+            return Debug(string.Format(GetMessageString(message) ?? message, args));
+        }
+
+        public int StartProgress(int parentActivityId, string message, params object[] args) {
+            return StartProgress(parentActivityId, string.Format(GetMessageString(message) ?? message, args));
+        }
+
+        public bool Progress(int activityId, int progress, string message, params object[] args) {
+            return Progress(activityId, progress, string.Format(GetMessageString(message) ?? message, args));
+        }
+
+        public void Dispose() {
+        }
+
+        #endregion
 
         internal void AddPackageSource(string id, string location, bool trusted) {
             // quick and dirty. 
@@ -762,7 +775,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
             return true;
         }
 
-        public bool InstallSingleChocolateyPackage(PackageReference packageReference) {
+        internal bool InstallSingleChocolateyPackage(PackageReference packageReference) {
             List<Tuple<string, string>> success;
             List<Tuple<string, string>> already;
             List<Tuple<string, string>> failed;
@@ -788,7 +801,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                             try {
                                 // awesome. Just like we thought should happen
                                 if (PostProcessPackageInstall(success[0].Item1, success[0].Item2)) {
-                                    YieldPackage(packageReference.FastPath, packageReference.Id, packageReference.Version, "semver", packageReference.Package.Summary, GetNameForSource(packageReference.Source));
+                                    YieldPackage(packageReference.FastPath, packageReference.Id, packageReference.Version, "semver", packageReference.Package.Summary, GetNameForSource(packageReference.Source),packageReference.FastPath);
                                     return true;
                                 } else {
                                     Verbose("PostProcessPackageInstall returned false", "This is unexpected");
@@ -875,7 +888,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                     pkgPath.TryHardToDelete();
 
                     if (!isRollback) {
-                        YieldPackage(fastPath, id, version, "semver", "", "");
+                        YieldPackage(fastPath, id, version, "semver", "", "",fastPath);
                     }
 
                     if (IsElevated(this)) {
@@ -1054,7 +1067,7 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
             return null;
         }
 
-        public IEnumerable<PackageReference> SearchForPackages(string name, string requiredVersion, string minimumVersion, string maximumVersion) {
+        internal IEnumerable<PackageReference> SearchForPackages(string name, string requiredVersion, string minimumVersion, string maximumVersion) {
             return Repositories.AsParallel().SelectMany(repository => {
                 var packages = repository.GetPackages().Find(Hint.Is() ? Hint : name);
 
@@ -1117,12 +1130,12 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
             }) ?? source;
         }
 
-        internal bool YieldPackages(IEnumerable<PackageReference> packageReferences) {
+        internal bool YieldPackages(IEnumerable<PackageReference> packageReferences, string searchKey) {
             var foundPackage = false;
 
             foreach (var pkg in packageReferences) {
                 foundPackage = true;
-                if (!YieldPackage(pkg.FastPath, pkg.Package.Id, pkg.Package.Version.ToString(), "semver", pkg.Package.Summary, GetNameForSource(pkg.Source))) {
+                if (!YieldPackage(pkg.FastPath, pkg.Package.Id, pkg.Package.Version.ToString(), "semver", pkg.Package.Summary, GetNameForSource(pkg.Source),searchKey)) {
                     break;
                 }
             }
@@ -1663,4 +1676,33 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
             return true;
         }
     }
+
+    #region copy dynamicextension-implementation
+public static class DynamicExtensions {
+
+        private static dynamic _dynamicInterface;
+
+        public static dynamic DynamicInterface {
+            get {
+                return _dynamicInterface;
+            }
+            set {
+                // Write Once Property
+                if (_dynamicInterface == null) {
+                    _dynamicInterface = value;
+                    // _dynamicInterface = AppDomain.CurrentDomain.GetData("DynamicInterface");
+                }
+            }
+        }
+
+        public static T As<T>(this object instance) {
+            return DynamicInterface.Create<T>(instance);
+        }
+        public static T Extend<T>(this object obj, params object[] objects) {
+            return DynamicInterface.Create<T>(objects, obj);
+        }
+    }
+
+    #endregion
+
 }

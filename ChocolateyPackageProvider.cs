@@ -14,7 +14,6 @@
 
 namespace OneGet.PackageProvider.Chocolatey {
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.IO;
@@ -23,70 +22,77 @@ namespace OneGet.PackageProvider.Chocolatey {
     using Callback = System.Object;
 
     public class ChocolateyPackageProvider {
-        public ChocolateyPackageProvider() {
-        }
-
-        public string PackageProviderName  {
+        public string PackageProviderName {
             get {
                 return "Chocolatey";
             }
         }
 
+        public void InitializeProvider(object dynamicInterface, Callback c) {
+            DynamicExtensions.DynamicInterface = dynamicInterface;
+
+            using (var request = c.As<Request>()) {
+                if (NuGet.NuGetCorePath == null) {
+                    NuGet.NuGetCorePath = request.GetNuGetDllPath(request);
+                }
+            }
+        }
+
         public bool FindPackage(string name, string requiredVersion, string minimumVersion, string maximumVersion, Callback c) {
             // using (var state = ChocolateyRequest.New(c)) {
-            using (var state = Request.New(c)) {
-                var allowPrerelease = state.AllowPrereleaseVersions;
+            using (var request = c.As<Request>()) {
+                var allowPrerelease = request.AllowPrereleaseVersions;
 
                 // get the package by ID first.
                 // if there are any packages, yield and return
-                if (state.YieldPackages(state.GetPackageById(name, requiredVersion, minimumVersion, maximumVersion))) {
+                if (request.YieldPackages(request.GetPackageById(name, requiredVersion, minimumVersion, maximumVersion),name)) {
                     return true;
                 }
 
                 // have we been cancelled?
-                if (state.IsCancelled()) {
+                if (request.IsCancelled()) {
                     return false;
                 }
 
                 // Try searching for matches and returning those.
-                return state.YieldPackages(state.SearchForPackages(name, requiredVersion, minimumVersion, maximumVersion));
+                return request.YieldPackages(request.SearchForPackages(name, requiredVersion, minimumVersion, maximumVersion),name);
             }
         }
 
         public bool InstallPackage(string fastPath, Callback c) {
-            using (var state = Request.New(c)) {
-                var pkgRef = state.GetPackageByFastpath(fastPath);
+            using (var request = c.As<Request>()) {
+                var pkgRef = request.GetPackageByFastpath(fastPath);
 
                 if (pkgRef != null) {
-                    var dependencies = state.GetUninstalledPackageDependencies(pkgRef).Reverse().ToArray();
+                    var dependencies = request.GetUninstalledPackageDependencies(pkgRef).Reverse().ToArray();
 
                     var n = 0;
                     foreach (var d in dependencies) {
-                        if (!state.WhatIf()) {
-                            state.Progress(1, (n*100)/dependencies.Length, "Dependency Package '{0}' ({1} of {2})", d.Id, ++n, dependencies.Length);
+                        if (!request.WhatIf()) {
+                            request.Progress(1, (n*100)/dependencies.Length, "Dependency Package '{0}' ({1} of {2})", d.Id, ++n, dependencies.Length);
                         }
-                        if (!state.InstallSingleChocolateyPackage(d)) {
-                            state.Error("InstallFailure", "Dependent Package '{0} {1}' not installed", d.Id, d.Version);
-                            state.CompleteProgress(1, false);
+                        if (!request.InstallSingleChocolateyPackage(d)) {
+                            request.Error("InstallFailure", "Dependent Package '{0} {1}' not installed", d.Id, d.Version);
+                            request.CompleteProgress(1, false);
                             return false;
                         }
                     }
-                    if (!state.WhatIf()) {
-                        state.CompleteProgress(1,true);
+                    if (!request.WhatIf()) {
+                        request.CompleteProgress(1, true);
                     }
                     // got this far, let's install the package we came here for.
-                    if (!state.InstallSingleChocolateyPackage(pkgRef)) {
+                    if (!request.InstallSingleChocolateyPackage(pkgRef)) {
                         // package itself didn't install.
                         // roll that back out everything we did install.
                         // and get out of here.
-                        state.Error("InstallFailure", "Package '{0}' not installed", pkgRef.Id);
+                        request.Error("InstallFailure", "Package '{0}' not installed", pkgRef.Id);
                         return false;
                     }
                     return true;
                 }
 
                 // uh, we couldn't find a package for that.
-                state.Error("UnknownPackage", "Unable to resolve package {0}", fastPath);
+                request.Error("UnknownPackage", "Unable to resolve package {0}", fastPath);
                 return false;
             }
         }
@@ -96,8 +102,8 @@ namespace OneGet.PackageProvider.Chocolatey {
             if (c == null) {
                 throw new ArgumentNullException("c");
             }
-            using (var state = Request.New(c)) {
-                var nupkgs = Directory.EnumerateFileSystemEntries(state.PackageInstallationPath, "*.nupkg", SearchOption.AllDirectories);
+            using (var request = c.As<Request>()) {
+                var nupkgs = Directory.EnumerateFileSystemEntries(request.PackageInstallationPath, "*.nupkg", SearchOption.AllDirectories);
                 foreach (var pkgFile in nupkgs) {
                     if (PackageHelper.IsPackageFile(pkgFile)) {
                         var pkg = new ZipPackage(pkgFile);
@@ -105,22 +111,20 @@ namespace OneGet.PackageProvider.Chocolatey {
 
                         // if this is an exact match, just return that.
                         if (pkg.Id.Equals(name, StringComparison.CurrentCultureIgnoreCase)) {
-                            var fastpath = state.MakeFastPath(pkgFile, pkg.Id, pkg.Version.ToString());
-                            if (!state.YieldPackage(fastpath, pkg.Id, pkg.Version.ToString(), "semver", pkg.Summary, state.GetNameForSource(pkgFile))) {
+                            var fastpath = request.MakeFastPath(pkgFile, pkg.Id, pkg.Version.ToString());
+                            if (!request.YieldPackage(fastpath, pkg.Id, pkg.Version.ToString(), "semver", pkg.Summary, request.GetNameForSource(pkgFile),name)) {
                                 return false;
                             }
                             break;
                         }
 
                         //otherwise return partial matches.
-                        if (string.IsNullOrEmpty(name) || pkg.Id.IndexOf(name, StringComparison.CurrentCultureIgnoreCase) > -1 ) {
-                            var fastpath = state.MakeFastPath(pkgFile, pkg.Id, pkg.Version.ToString());
-                            if (!state.YieldPackage(fastpath, pkg.Id, pkg.Version.ToString(), "semver", pkg.Summary, state.GetNameForSource(pkgFile))) {
+                        if (string.IsNullOrEmpty(name) || pkg.Id.IndexOf(name, StringComparison.CurrentCultureIgnoreCase) > -1) {
+                            var fastpath = request.MakeFastPath(pkgFile, pkg.Id, pkg.Version.ToString());
+                            if (!request.YieldPackage(fastpath, pkg.Id, pkg.Version.ToString(), "semver", pkg.Summary, request.GetNameForSource(pkgFile),name)) {
                                 return false;
                             }
                         }
-
-
                     }
                 }
                 return true;
@@ -133,16 +137,16 @@ namespace OneGet.PackageProvider.Chocolatey {
                 throw new ArgumentNullException("c");
             }
 
-            using (var state = Request.New(c)) {
-                return state.UninstallPackage(fastPath, false);
+            using (var request = c.As<Request>()) {
+                return request.UninstallPackage(fastPath, false);
             }
         }
 
         public bool InstallPackageByFile(string filePath, Callback c) {
-            using (var state = Request.New(c)) {
+            using (var request = c.As<Request>()) {
                 filePath = Path.GetFullPath(filePath);
                 if (FilesystemExtensions.FileExists(filePath)) {
-                    var pkgRef = state.GetPackageByPath(filePath);
+                    var pkgRef = request.GetPackageByPath(filePath);
                 }
             }
             return false;
@@ -150,13 +154,13 @@ namespace OneGet.PackageProvider.Chocolatey {
 
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
         internal bool FindPackageByFile(string filePath, Callback c) {
-            using (var state = Request.New(c)) {
+            using (var request = c.As<Request>()) {
                 filePath = Path.GetFullPath(filePath);
                 if (FilesystemExtensions.FileExists(filePath)) {
                     if (PackageHelper.IsPackageFile(filePath)) {
                         var pkg = new ZipPackage(filePath);
-                        var fastPath = state.MakeFastPath(filePath, pkg.Id, pkg.Version.ToString());
-                        state.YieldPackage(fastPath, pkg.Id, pkg.Version.ToString(), "semver", "", filePath);
+                        var fastPath = request.MakeFastPath(filePath, pkg.Id, pkg.Version.ToString());
+                        request.YieldPackage(fastPath, pkg.Id, pkg.Version.ToString(), "semver", "", filePath,filePath);
                     }
                 }
             }
@@ -167,23 +171,22 @@ namespace OneGet.PackageProvider.Chocolatey {
         // internal bool InstallPackageByUri(string uri, Callback c) {return false;}
 
         public void GetDynamicOptions(OptionCategory category, Callback c) {
-            using (var state = Request.New(c)) {
-
+            using (var request = c.As<Request>()) {
                 switch (category) {
                     case OptionCategory.Package:
-                        if (!state.YieldDynamicOption((int)OptionCategory.Package, "AllowPrereleaseVersions", (int)OptionType.Switch, false, null)) {
+                        if (!request.YieldDynamicOption(OptionCategory.Package, "AllowPrereleaseVersions", OptionType.Switch, false, null)) {
                             return;
                         }
-                        if (!state.YieldDynamicOption((int)OptionCategory.Package, "AllVersions", (int)OptionType.Switch, false, null)) {
+                        if (!request.YieldDynamicOption(OptionCategory.Package, "AllVersions", OptionType.Switch, false, null)) {
                             return;
                         }
-                        if (!state.YieldDynamicOption((int)OptionCategory.Package, "LocalOnly", (int)OptionType.Switch, false, null)) {
+                        if (!request.YieldDynamicOption(OptionCategory.Package, "LocalOnly", OptionType.Switch, false, null)) {
                             return;
                         }
-                        if (!state.YieldDynamicOption((int)OptionCategory.Package, "Hint", (int)OptionType.Switch, false, null)) {
+                        if (!request.YieldDynamicOption(OptionCategory.Package, "Hint", OptionType.Switch, false, null)) {
                             return;
                         }
-                        if (!state.YieldDynamicOption((int)OptionCategory.Package, "LeavePartialPackageInstalled", (int)OptionType.Switch, false, null)) {
+                        if (!request.YieldDynamicOption(OptionCategory.Package, "LeavePartialPackageInstalled", OptionType.Switch, false, null)) {
                             return;
                         }
                         break;
@@ -192,35 +195,35 @@ namespace OneGet.PackageProvider.Chocolatey {
         }
 
         public void AddPackageSource(string name, string location, bool trusted, Callback c) {
-            using (var state = Request.New(c)) {
+            using (var request = c.As<Request>()) {
                 if (string.IsNullOrEmpty(name)) {
-                    state.Error("Chocolatey Package Sources require parameter", "Name");
+                    request.Error("Chocolatey Package Sources require parameter", "Name");
                 }
                 if (string.IsNullOrEmpty(location)) {
-                    state.Error("Chocolatey Package Sources require parameter", "Location");
+                    request.Error("Chocolatey Package Sources require parameter", "Location");
                 }
-                state.AddPackageSource(name, location, trusted);
+                request.AddPackageSource(name, location, trusted);
             }
         }
 
         public void RemovePackageSource(string name, Callback c) {
-            using (var state = Request.New(c)) {
-                state.RemovePackageSource(name);
+            using (var request = c.As<Request>()) {
+                request.RemovePackageSource(name);
             }
         }
 
         public bool GetPackageSources(Callback c) {
-            using (var state = Request.New(c)) {
-                var sources = state.AllPackageRepositories;
+            using (var request = c.As<Request>()) {
+                var sources = request.AllPackageRepositories;
                 foreach (var k in sources.Keys) {
-                    state.YieldSource(k, sources[k].Location, sources[k].Trusted);
+                    request.YieldPackageSource(k, sources[k].Location, sources[k].Trusted);
                 }
             }
             return true;
         }
 
         public bool IsValidPackageSource(string packageSource, Callback c) {
-            using (var state = Request.New(c)) {
+            using (var request = c.As<Request>()) {
                 if (Uri.IsWellFormedUriString(packageSource, UriKind.Absolute)) {
                     var uri = new Uri(packageSource, UriKind.Absolute);
                     switch (uri.Scheme.ToLower(CultureInfo.CurrentCulture)) {
@@ -236,13 +239,13 @@ namespace OneGet.PackageProvider.Chocolatey {
                 if (Directory.Exists(packageSource)) {
                     return true;
                 }
-                return state.AllPackageRepositories.ContainsKey(packageSource);
+                return request.AllPackageRepositories.ContainsKey(packageSource);
             }
         }
 
         public bool IsTrustedPackageSource(string packageSource, Callback c) {
-            using (var state = Request.New(c)) {
-                var apr = state.AllPackageRepositories;
+            using (var request = c.As<Request>()) {
+                var apr = request.AllPackageRepositories;
                 if (apr.ContainsKey(packageSource)) {
                     return apr[packageSource].Trusted;
                 }
@@ -256,7 +259,7 @@ namespace OneGet.PackageProvider.Chocolatey {
     }
 
     #region copy PackageProvider-types
-    public enum OptionCategory {
+public enum OptionCategory {
         Package = 0,
         Provider = 1,
         Source = 2,
@@ -273,4 +276,5 @@ namespace OneGet.PackageProvider.Chocolatey {
     }
 
     #endregion
+
 }
