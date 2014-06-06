@@ -26,12 +26,12 @@ using NuGet.Commands;
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Security;
     using System.Text.RegularExpressions;
     using System.Xml.Linq;
     using System.Xml.XPath;
     using Microsoft.OneGet.Core.Extensions;
     using Microsoft.OneGet.Core.Platform;
-    using Microsoft.OneGet.Core.Process;
     using Microsoft.Win32;
     using Callback = System.Object;
 
@@ -167,7 +167,8 @@ using NuGet.Commands;
 #if STATIC_LINK 
                 return typeof (InstallCommand).Assembly.Location;
 #else
-                return _nuGetExePath ?? (_nuGetExePath = GetNuGetExePath(this));
+                //return _nuGetExePath ?? (_nuGetExePath = GetNuGetExePath(this));
+                return null;
 #endif
             }
         }
@@ -326,21 +327,25 @@ using NuGet.Commands;
         /// </summary>
         /// <returns>returns TRUE if the operation has been cancelled.</returns>
         public abstract bool IsCancelled();
+
+        public abstract object GetPackageManagementService(Callback c);
         #endregion
 
         #region copy host-apis
-
-        public abstract object GetPackageManagementService();
 
         /// <summary>
         ///     Used by a provider to request what metadata keys were passed from the user
         /// </summary>
         /// <returns></returns>
-        public abstract IEnumerable<string> GetOptionKeys(string category);
+        public abstract IEnumerable<string> GetOptionKeys(int category);
 
-        public abstract IEnumerable<string> GetOptionValues(string category, string key);
+        public abstract IEnumerable<string> GetOptionValues(int category, string key);
 
         public abstract IEnumerable<string> GetSpecifiedPackageSources();
+
+        public abstract string GetCredentialUsername();
+
+        public abstract SecureString GetCredentialPassword();
 
         public abstract bool ShouldContinueWithUntrustedPackageSource(string package, string packageSource);
 
@@ -359,65 +364,31 @@ using NuGet.Commands;
         public abstract bool AskPermission(string permission);
 
         public abstract bool WhatIf();
+
+        public abstract bool PackageInstalled(string packageName, string version, string source, string destination);
+
+        public abstract bool BeforePackageUninstall(string packageName, string version, string source, string destination);
         #endregion
 
         #region copy service-apis
 
-        public abstract string GetNuGetExePath(Callback c);
+        public abstract void DownloadFile(Uri remoteLocation, string localFilename, Callback c);
 
-        public abstract string GetNuGetDllPath(Callback c);
+        public abstract bool IsSupportedArchive(string localFilename, Callback c);
 
-        public abstract string DownloadFile(string remoteLocation, string localLocation, Callback c);
+        public abstract IEnumerable<string> UnpackArchive(string localFilename, string destinationFolder, Callback c);
 
         public abstract void AddPinnedItemToTaskbar(string item, Callback c);
 
         public abstract void RemovePinnedItemFromTaskbar(string item, Callback c);
 
-        public abstract bool CreateShortcutLink(string linkPath, string targetPath, string description, string workingDirectory, string arguments, Callback c);
+        public abstract void CreateShortcutLink(string linkPath, string targetPath, string description, string workingDirectory, string arguments, Callback c);
 
-        public abstract IEnumerable<string> UnzipFileIncremental(string zipFile, string folder, Callback c);
+        public abstract void SetEnvironmentVariable(string variable, string value, int context, Callback c);
 
-        public abstract IEnumerable<string> UnzipFile(string zipFile, string folder, Callback c);
+        public abstract void RemoveEnvironmentVariable(string variable, int context, Callback c);
 
-        public abstract void AddFileAssociation();
-
-        public abstract void RemoveFileAssociation();
-
-        public abstract void AddExplorerMenuItem();
-
-        public abstract void RemoveExplorerMenuItem();
-
-        public abstract bool SetEnvironmentVariable(string variable, string value, string context, Callback c);
-
-        public abstract bool RemoveEnvironmentVariable(string variable, string context, Callback c);
-
-        public abstract void AddFolderToPath();
-
-        public abstract void RemoveFolderFromPath();
-
-        public abstract void InstallMSI();
-
-        public abstract void RemoveMSI();
-
-        public abstract void StartProcess();
-
-        public abstract void InstallVSIX();
-
-        public abstract void UninstallVSIX();
-
-        public abstract void InstallPowershellScript();
-
-        public abstract void UninstallPowershellScript();
-
-        public abstract void SearchForExecutable();
-
-        public abstract void GetUserBinFolder();
-
-        public abstract void GetSystemBinFolder();
-
-        public abstract bool CopyFile(string sourcePath, string destinationPath, Callback c);
-
-        public abstract void CopyFolder();
+        public abstract void CopyFile(string sourcePath, string destinationPath, Callback c);
 
         public abstract void Delete(string path, Callback c);
 
@@ -427,19 +398,9 @@ using NuGet.Commands;
 
         public abstract void DeleteFile(string filename, Callback c);
 
-        public abstract void BeginTransaction();
-
-        public abstract void AbortTransaction();
-
-        public abstract void EndTransaction();
-
-        public abstract void GenerateUninstallScript();
-
         public abstract string GetKnownFolder(string knownFolder, Callback c);
 
         public abstract bool IsElevated(Callback c);
-
-        public abstract object GetPackageManagementService(Callback c);
         #endregion
 
         #region copy request-apis
@@ -567,26 +528,26 @@ public bool Warning(string message, params object[] args) {
         }
 
         public string MetadataValue(string switchName) {
-            var key = GetOptionKeys("package").FirstOrDefault(each => each.Equals(switchName, StringComparison.CurrentCultureIgnoreCase));
-            return GetOptionValues("package", key ?? switchName).FirstOrDefault();
+            var key = GetOptionKeys((int)OptionCategory.Package).FirstOrDefault(each => each.Equals(switchName, StringComparison.CurrentCultureIgnoreCase));
+            return GetOptionValues((int)OptionCategory.Package, key ?? switchName).FirstOrDefault();
         }
 
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
         public string[] MetadataValues(string switchName) {
-            var key = GetOptionKeys("package").FirstOrDefault(each => each.Equals(switchName, StringComparison.CurrentCultureIgnoreCase));
-            return GetOptionValues("package", key ?? switchName).ToArray();
+            var key = GetOptionKeys((int)OptionCategory.Package).FirstOrDefault(each => each.Equals(switchName, StringComparison.CurrentCultureIgnoreCase));
+            return GetOptionValues((int)OptionCategory.Package, key ?? switchName).ToArray();
         }
 
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
         public string InstallOption(string switchName) {
-            var key = GetOptionKeys("install").FirstOrDefault(each => each.Equals(switchName, StringComparison.CurrentCultureIgnoreCase));
-            return GetOptionValues("install", key ?? switchName).FirstOrDefault();
+            var key = GetOptionKeys((int)OptionCategory.Install).FirstOrDefault(each => each.Equals(switchName, StringComparison.CurrentCultureIgnoreCase));
+            return GetOptionValues((int)OptionCategory.Install, key ?? switchName).FirstOrDefault();
         }
 
         [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Still in development!")]
         public string[] InstallOptions(string switchName) {
-            var key = GetOptionKeys("install").FirstOrDefault(each => each.Equals(switchName, StringComparison.CurrentCultureIgnoreCase));
-            return GetOptionValues("install", key ?? switchName).ToArray();
+            var key = GetOptionKeys((int)OptionCategory.Install).FirstOrDefault(each => each.Equals(switchName, StringComparison.CurrentCultureIgnoreCase));
+            return GetOptionValues((int)OptionCategory.Install, key ?? switchName).ToArray();
         }
 
         public bool IsSwitchSet(string switchName) {
@@ -790,10 +751,10 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                             // didn't actually install anything. that's odd.
                             if (already.Count > 0 && failed.Count == 0) {
                                 // looks like it was already there?
-                                Verbose("Skipped", "Package '{0} v{1}' already installed", packageReference.Id, packageReference.Version);
+                                Verbose("Skipped Package '{0} v{1}' -- already installed", packageReference.Id, packageReference.Version);
                                 return true;
                             } else {
-                                Verbose("NotInstalled", "Package '{0} v{1}' failed to install", packageReference.Id, packageReference.Version);
+                                Verbose("Package '{0} v{1}' failed to install", packageReference.Id, packageReference.Version);
                             }
                             return false;
 
@@ -1228,8 +1189,10 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
 
             Verbose("GetChocolateyWebFile", "{0} => {1}", packageName, url);
 
-            var file = DownloadFile(url, fileFullPath, this);
-            if (string.IsNullOrEmpty(file)) {
+            var uri = new Uri(url);
+
+            DownloadFile(uri, fileFullPath, this);
+            if (string.IsNullOrEmpty(fileFullPath)) {
                 throw new Exception("Failed to download file {0}".format(url));
             }
 
@@ -1509,7 +1472,9 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
             if (!FilesystemExtensions.FileExists(vsixInstller)) {
                 throw new Exception("Can't find Visual Studio VSixInstaller.exe {0}".format(vsixInstller));
             }
-            var file = DownloadFile(vsixUrl, Path.Combine(FilesystemExtensions.TempPath, packageName.MakeSafeFileName()), this);
+            var file = Path.Combine(FilesystemExtensions.TempPath, packageName.MakeSafeFileName());
+            
+                DownloadFile(new Uri(vsixUrl),file, this);
             if (string.IsNullOrEmpty(file) || !FilesystemExtensions.FileExists(file)) {
                 throw new Exception("Unable to download file {0}".format(vsixUrl));
             }
@@ -1580,12 +1545,12 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
                     var zipFileName = Path.GetFileName(zipfileFullPath);
                     var zipExtractLogFullPath = Path.Combine(packageLibPath, "{0}.txt".format(zipFileName));
                     var snapshot = new Snapshot(this, destination);
-                    foreach (var f in UnzipFileIncremental(fileFullPath, destination, this)) {
+                    foreach (var f in UnpackArchive(fileFullPath, destination, this)) {
                         // Verbose("Unzipped file", f);
                     }
                     snapshot.WriteFileDiffLog(zipExtractLogFullPath);
                 } else {
-                    foreach (var f in UnzipFileIncremental(fileFullPath, destination, this)) {
+                    foreach (var f in UnpackArchive(fileFullPath, destination, this)) {
                         // Verbose("Unzipped file", f);
                     }
                 }

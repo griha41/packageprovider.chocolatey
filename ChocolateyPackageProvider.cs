@@ -31,11 +31,13 @@ namespace OneGet.PackageProvider.Chocolatey {
         public void InitializeProvider(object dynamicInterface, Callback c) {
             DynamicExtensions.DynamicInterface = dynamicInterface;
 
+            /*
             using (var request = c.As<Request>()) {
                 if (NuGet.NuGetCorePath == null) {
                     NuGet.NuGetCorePath = request.GetNuGetDllPath(request);
                 }
             }
+             * */
         }
 
         public bool FindPackage(string name, string requiredVersion, string minimumVersion, string maximumVersion, Callback c) {
@@ -273,6 +275,11 @@ public enum OptionCategory {
         Switch = 3,
         Path = 4,
         Uri = 5
+    }
+
+    public enum EnvironmentContext {
+        User = 0,
+        System = 1
     }
 
     #endregion
