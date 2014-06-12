@@ -29,7 +29,7 @@ namespace OneGet.PackageProvider.Chocolatey {
         }
 
         public void InitializeProvider(object dynamicInterface, Callback c) {
-            DynamicExtensions.DynamicInterface = dynamicInterface;
+            DynamicExtensions.RemoteDynamicInterface = dynamicInterface;
 
             /*
             using (var request = c.As<Request>()) {
@@ -278,8 +278,9 @@ public enum OptionCategory {
     }
 
     public enum EnvironmentContext {
-        User = 0,
-        System = 1
+        All = 0,
+        User = 1,
+        System = 2
     }
 
     #endregion
