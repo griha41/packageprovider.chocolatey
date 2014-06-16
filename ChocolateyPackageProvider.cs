@@ -18,7 +18,7 @@ namespace OneGet.PackageProvider.Chocolatey {
     using System.Globalization;
     using System.IO;
     using System.Linq;
-    using Microsoft.OneGet.Core.Extensions;
+    using Microsoft.OneGet.Extensions;
     using Callback = System.Object;
 
     public class ChocolateyPackageProvider {
@@ -70,18 +70,18 @@ namespace OneGet.PackageProvider.Chocolatey {
 
                     var n = 0;
                     foreach (var d in dependencies) {
-                        if (!request.WhatIf()) {
-                            request.Progress(1, (n*100)/dependencies.Length, "Dependency Package '{0}' ({1} of {2})", d.Id, ++n, dependencies.Length);
-                        }
+                        // if (!request.WhatIf()) {
+                           //  request.Progress(1, (n*100)/dependencies.Length, "Dependency Package '{0}' ({1} of {2})", d.Id, ++n, dependencies.Length);
+                        // }
                         if (!request.InstallSingleChocolateyPackage(d)) {
                             request.Error("InstallFailure", "Dependent Package '{0} {1}' not installed", d.Id, d.Version);
                             request.CompleteProgress(1, false);
                             return false;
                         }
                     }
-                    if (!request.WhatIf()) {
-                        request.CompleteProgress(1, true);
-                    }
+                    // if (!request.WhatIf()) {
+                        // request.CompleteProgress(1, true);
+                    // }
                     // got this far, let's install the package we came here for.
                     if (!request.InstallSingleChocolateyPackage(pkgRef)) {
                         // package itself didn't install.
@@ -114,7 +114,7 @@ namespace OneGet.PackageProvider.Chocolatey {
                         // if this is an exact match, just return that.
                         if (pkg.Id.Equals(name, StringComparison.CurrentCultureIgnoreCase)) {
                             var fastpath = request.MakeFastPath(pkgFile, pkg.Id, pkg.Version.ToString());
-                            if (!request.YieldPackage(fastpath, pkg.Id, pkg.Version.ToString(), "semver", pkg.Summary, request.GetNameForSource(pkgFile),name)) {
+                            if (!request.YieldPackage(fastpath, pkg.Id, pkg.Version.ToString(), "semver", pkg.Summary, request.GetNameForSource(pkgFile),name, Path.GetDirectoryName(pkgFile), Path.GetFileName(pkgFile))) {
                                 return false;
                             }
                             break;
@@ -123,7 +123,7 @@ namespace OneGet.PackageProvider.Chocolatey {
                         //otherwise return partial matches.
                         if (string.IsNullOrEmpty(name) || pkg.Id.IndexOf(name, StringComparison.CurrentCultureIgnoreCase) > -1) {
                             var fastpath = request.MakeFastPath(pkgFile, pkg.Id, pkg.Version.ToString());
-                            if (!request.YieldPackage(fastpath, pkg.Id, pkg.Version.ToString(), "semver", pkg.Summary, request.GetNameForSource(pkgFile),name)) {
+                            if (!request.YieldPackage(fastpath, pkg.Id, pkg.Version.ToString(), "semver", pkg.Summary, request.GetNameForSource(pkgFile), name, Path.GetDirectoryName(pkgFile), Path.GetFileName(pkgFile))) {
                                 return false;
                             }
                         }
@@ -218,7 +218,7 @@ namespace OneGet.PackageProvider.Chocolatey {
             using (var request = c.As<Request>()) {
                 var sources = request.AllPackageRepositories;
                 foreach (var k in sources.Keys) {
-                    request.YieldPackageSource(k, sources[k].Location, sources[k].Trusted);
+                    request.YieldPackageSource(k, sources[k].Location, sources[k].Trusted, sources[k].IsRegistered);
                 }
             }
             return true;

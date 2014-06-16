@@ -16,7 +16,7 @@ namespace OneGet.PackageProvider.Chocolatey.CmdLets {
     using System;
     using System.Management.Automation;
     using Microsoft.OneGet;
-    using Microsoft.OneGet.Core.Extensions;
+    using Microsoft.OneGet.Extensions;
 
     /// <summary>
     ///     I'm not entirely convinced this is the best way to handle this, but
