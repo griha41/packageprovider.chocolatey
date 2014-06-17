@@ -366,11 +366,11 @@ using NuGet.Commands;
 
         public abstract IEnumerable<string> GetOptionValues(int category, string key);
 
-        public abstract IEnumerable<string> GetSpecifiedPackageSources();
+        public abstract IEnumerable<string> GetSources();
 
         public abstract string GetCredentialUsername();
 
-        public abstract SecureString GetCredentialPassword();
+        public abstract string GetCredentialPassword();
 
         public abstract bool ShouldContinueWithUntrustedPackageSource(string package, string packageSource);
 
@@ -530,6 +530,22 @@ public bool Warning(string message, params object[] args) {
             return string.Format(message, args);
         }
 
+        public SecureString Password {
+            get {
+                var p = GetCredentialPassword();
+                if (p == null) {
+                    return null;
+                }
+                return p.FromProtectedString("salt");
+            }
+        }
+
+        public string Username {
+            get {
+                return  GetCredentialUsername();
+            }
+        }
+
         public void Dispose() {
         }
 
@@ -544,7 +560,7 @@ public bool Warning(string message, params object[] args) {
         }
 
         internal MarshalByRefObject Extend(params object[] objects) {
-            return DynamicExtensions.Extend(this, GetIRequestInterface(), objects);
+            return RequestExtensions.Extend(this, GetIRequestInterface(), objects);
         }
 
         #endregion
@@ -1698,55 +1714,6 @@ start """" ""%DIR%{0}"" %*".format(PackageExePath.RelativePathTo(exe)));
     }
 
     #region copy dynamicextension-implementation
-public static class DynamicExtensions {
-        private static dynamic _remoteDynamicInterface;
-        private static dynamic _localDynamicInterface;
-
-        /// <summary>
-        ///  This is the Instance for DynamicInterface that we use when we're giving another AppDomain a remotable object.
-        /// </summary>
-        public static dynamic LocalDynamicInterface {
-            get {
-                return _localDynamicInterface ?? (_localDynamicInterface = Activator.CreateInstance(RemoteDynamicInterface.GetType()));
-            }
-        }
-
-        /// <summary>
-        /// The is the instance of the DynamicInteface service from the calling AppDomain
-        /// </summary>
-        public static dynamic RemoteDynamicInterface {
-            get {
-                return _remoteDynamicInterface;
-            }
-            set {
-                if (_remoteDynamicInterface == null) {
-                    _remoteDynamicInterface = value;
-                }
-            }
-        }
-
-        /// <summary>
-        /// This is called to adapt an object from a foreign app domain to a known interface
-        /// In this appDomain
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="instance"></param>
-        /// <returns></returns>
-        public static T As<T>(this object instance) {
-            return RemoteDynamicInterface.Create<T>(instance);
-        }
-
-        /// <summary>
-        ///  This is called to adapt and extend an object that we wish to pass to a foreign app domain
-        /// </summary>
-        /// <param name="obj">The base object that we are passing</param>
-        /// <param name="tInterface">the target interface (from the foreign appdomain)</param>
-        /// <param name="objects">the overriding objects (may be anonymous objects with Delegates, or an object with methods)</param>
-        /// <returns></returns>
-        public static MarshalByRefObject Extend(this object obj, Type tInterface, params object[] objects) {
-            return LocalDynamicInterface.Create(tInterface, objects, obj);
-        }
-    }
 
     #endregion
 
