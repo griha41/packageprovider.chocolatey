@@ -451,7 +451,7 @@ using NuGet.Commands;
 
         public abstract bool YieldEntity(string parentFastPath, string name, string regid, string role, string thumbprint);
 
-        public abstract bool YieldLink(string parentFastPath, string artifact, string referenceUrl, string appliesToMedia, string ownership, string relativeTo, string mediaType, string use);
+        public abstract bool YieldLink(string parentFastPath, string referenceUri, string relationship, string mediaType, string ownership, string use, string appliesToMedia, string artifact);
 
         #if M2
         public abstract bool YieldSwidtag(string fastPath, string xmlOrJsonDoc);
@@ -469,7 +469,7 @@ using NuGet.Commands;
         /// <param name="isRegistered"></param>
         /// <param name="isValidated"></param>
         /// <returns></returns>
-        public abstract bool YieldSoftwareIdentitySource(string name, string location, bool isTrusted,bool isRegistered, bool isValidated);
+        public abstract bool YieldPackageSource(string name, string location, bool isTrusted,bool isRegistered, bool isValidated);
 
         /// <summary>
         ///     Used by a provider to return the fields for a Metadata Definition
@@ -492,32 +492,32 @@ using NuGet.Commands;
         }
 
         #region copy Request-implementation
-public bool Warning(string message, params object[] args) {
-            return Warning(FormatMessageString(message,args));
+public bool Warning(string messageText, params object[] args) {
+            return Warning(FormatMessageString(messageText,args));
         }
 
-        public bool Error(string message, params object[] args) {
-            return Error(FormatMessageString(message,args));
+        public bool Error(string messageText, params object[] args) {
+            return Error(FormatMessageString(messageText,args));
         }
 
-        public bool Message(string message, params object[] args) {
-            return Message(FormatMessageString(message,args));
+        public bool Message(string messageText, params object[] args) {
+            return Message(FormatMessageString(messageText,args));
         }
 
-        public bool Verbose(string message, params object[] args) {
-            return Verbose(FormatMessageString(message,args));
+        public bool Verbose(string messageText, params object[] args) {
+            return Verbose(FormatMessageString(messageText,args));
         } 
 
-        public bool Debug(string message, params object[] args) {
-            return Debug(FormatMessageString(message,args));
+        public bool Debug(string messageText, params object[] args) {
+            return Debug(FormatMessageString(messageText,args));
         }
 
-        public int StartProgress(int parentActivityId, string message, params object[] args) {
-            return StartProgress(parentActivityId, FormatMessageString(message,args));
+        public int StartProgress(int parentActivityId, string messageText, params object[] args) {
+            return StartProgress(parentActivityId, FormatMessageString(messageText,args));
         }
 
-        public bool Progress(int activityId, int progress, string message, params object[] args) {
-            return Progress(activityId, progress, FormatMessageString(message,args));
+        public bool Progress(int activityId, int progressPercentage, string messageText, params object[] args) {
+            return Progress(activityId, progressPercentage, FormatMessageString(messageText,args));
         }
 
         private static string FixMeFormat(string formatString, object[] args) {
@@ -525,7 +525,7 @@ public bool Warning(string message, params object[] args) {
                 // not really any args, and not really expectng any
                 return formatString.Replace('{', '\u00ab').Replace('}', '\u00bb');
             }
-            return System.Linq.Enumerable.Aggregate(args, "FIXME/Format:" + formatString.Replace('{', '\u00ab').Replace('}', '\u00bb'), (current, arg) => current + string.Format(" \u00ab{0}\u00bb", arg));
+            return System.Linq.Enumerable.Aggregate(args, "FIXME/Format:" + formatString.Replace('{', '\u00ab').Replace('}', '\u00bb'), (current, arg) => current + string.Format(CultureInfo.CurrentCulture," \u00ab{0}\u00bb", arg));
         }
 
         internal string FormatMessageString(string message, object[] args) {
@@ -537,7 +537,7 @@ public bool Warning(string message, params object[] args) {
             if (c < args.Length) {
                 return FixMeFormat(message, args);
             }
-            return string.Format(message, args);
+            return string.Format(CultureInfo.CurrentCulture, message, args);
         }
 
         public SecureString Password {
@@ -557,10 +557,20 @@ public bool Warning(string message, params object[] args) {
         }
 
         public void Dispose() {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        public virtual void Dispose(bool disposing) {
+
         }
 
         public static implicit operator MarshalByRefObject(Request req) {
             return req.RemoteThis;
+        }
+
+        public static MarshalByRefObject ToMarshalByRefObject(Request request) {
+            return request.RemoteThis;
         }
 
         internal MarshalByRefObject RemoteThis {
