@@ -315,7 +315,7 @@ using NuGet.Commands;
         ///     The consumer of this function should either use this as a dynamic object
         ///     Or DuckType it to an interface that resembles IPacakgeManagementService
         /// </summary>
-        /// <param name="c"></param>
+        /// <param name="requestImpl"></param>
         /// <returns></returns>
         public abstract object GetPackageManagementService(RequestImpl requestImpl);
 
@@ -327,6 +327,15 @@ using NuGet.Commands;
         /// </summary>
         /// <returns></returns>
         public abstract Type GetIRequestInterface();
+
+        /// <summary>
+        /// Returns the internal version of the OneGet core.
+        /// 
+        /// This will usually only be updated if there is a breaking API or Interface change that might 
+        /// require other code to know which version is running.
+        /// </summary>
+        /// <returns>Internal Version of OneGet</returns>
+        public abstract int CoreVersion();
 
         public abstract bool NotifyBeforePackageInstall(string packageName, string version, string source, string destination);
 
@@ -366,12 +375,24 @@ using NuGet.Commands;
 
         public abstract bool CompleteProgress(int activityId, bool isSuccessful);
 
+        public abstract IEnumerable<string> GetOptionValues(string category, string key);
+
         /// <summary>
         ///     Used by a provider to request what metadata keys were passed from the user
+        ///
+        /// This is API is deprecated, use the string variant instead.
         /// </summary>
         /// <returns></returns>
         public abstract IEnumerable<string> GetOptionKeys(int category);
 
+        /// <summary>
+        /// 
+        /// 
+        /// This is API is deprecated, use the string variant instead.
+        /// </summary>
+        /// <param name="category"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public abstract IEnumerable<string> GetOptionValues(int category, string key);
 
         public abstract IEnumerable<string> GetSources();
@@ -380,7 +401,7 @@ using NuGet.Commands;
 
         public abstract string GetCredentialPassword();
 
-        public abstract bool ShouldBootstrapProvider(string requestor, string providerName, string providerVersion, string providerType, string location, string destination );
+        public abstract bool ShouldBootstrapProvider(string requestor, string providerName, string providerVersion, string providerType, string location, string destination);
 
         public abstract bool ShouldContinueWithUntrustedPackageSource(string package, string packageSource);
 
@@ -499,6 +520,8 @@ using NuGet.Commands;
         /// <returns></returns>
         public abstract bool YieldDynamicOption(int category, string name, int expectedType, bool isRequired);
 
+        public abstract bool YieldDynamicOption(string category, string name, string expectedType, bool isRequired);
+
         public abstract bool YieldKeyValuePair(string key, string value);
 
         public abstract bool YieldValue(string value);
@@ -549,14 +572,14 @@ using NuGet.Commands;
                 // not really any args, and not really expectng any
                 return formatString.Replace('{', '\u00ab').Replace('}', '\u00bb');
             }
-            return System.Linq.Enumerable.Aggregate(args, "FIXME/Format:" + formatString.Replace('{', '\u00ab').Replace('}', '\u00bb'), (current, arg) => current + string.Format(CultureInfo.CurrentCulture," \u00ab{0}\u00bb", arg));
+            return System.Linq.Enumerable.Aggregate(args, formatString.Replace('{', '\u00ab').Replace('}', '\u00bb'), (current, arg) => current + string.Format(CultureInfo.CurrentCulture," \u00ab{0}\u00bb", arg));
         }
 
         internal string GetMessageStringInternal(string messageText) {
             return Messages.ResourceManager.GetString(messageText);
         }
 
-        internal string FormatMessageString(string messageText, object[] args) {
+        internal string FormatMessageString(string messageText, params object[] args) {
             if (string.IsNullOrEmpty(messageText)) {
                 return string.Empty;
             }
@@ -616,6 +639,38 @@ using NuGet.Commands;
 
         internal MarshalByRefObject Extend(params object[] objects) {
             return RequestExtensions.Extend(this, GetIRequestInterface(), objects);
+        }
+
+        internal string GetOptionValue(OptionCategory category, string name) {
+            // get the value from the request
+            if (CoreVersion() > 0) {
+                return (GetOptionValues(category.ToString(), name) ?? Enumerable.Empty<string>()).LastOrDefault();
+            }
+            return (GetOptionValues((int)category, name) ?? Enumerable.Empty<string>()).LastOrDefault();
+        }
+
+        internal IEnumerable<string> GetOptionValues(OptionCategory category, string name) {
+            // get the value from the request
+            if (CoreVersion() > 0) {
+                return (GetOptionValues(category.ToString(), name) ?? Enumerable.Empty<string>());
+            }
+            return (GetOptionValues((int)category, name) ?? Enumerable.Empty<string>());
+        }
+
+        public bool YieldDynamicOption(OptionCategory category, string name, OptionType expectedType, bool isRequired) {
+            if (CoreVersion() > 0) {
+                return YieldDynamicOption(category.ToString(), name, expectedType.ToString(), isRequired);
+            }
+
+            // Deprecated--August Preview build uses ints.
+            return YieldDynamicOption((int)category, name, (int)expectedType, isRequired);
+        }
+
+        public bool YieldDynamicOption(OptionCategory category, string name, OptionType expectedType, bool isRequired, IEnumerable<string> permittedValues) {
+            if (CoreVersion() > 0) {
+                return YieldDynamicOption(category.ToString(), name, expectedType.ToString(), isRequired) && (permittedValues ?? Enumerable.Empty<string>()).All(each => YieldKeyValuePair(name, each));
+            }
+            return YieldDynamicOption((int)category, name, (int)expectedType, isRequired) && (permittedValues ?? Enumerable.Empty<string>()).All(each => YieldKeyValuePair(name, each));
         }
 
         #endregion
